@@ -640,7 +640,7 @@ class AreaDefinition(BaseDefinition):
         return self.get_xy_from_lonlat(lons, lats)
 
 
-    def get_xy_from_lonlat(self, lon, lat):
+    def get_xy_from_lonlat(self, lon, lat, outside_error=True, return_int=True):
         """Retrieve closest x and y coordinates (column, row indices) for the
         specified geolocation (lon,lat) if inside area. If lon,lat is a point a
         ValueError is raised if the return point is outside the area domain. If
@@ -688,18 +688,26 @@ class AreaDefinition(BaseDefinition):
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
             mask = (((x__ < 0) | (x__ > self.x_size)) |
                     ((y__ < 0) | (y__ > self.y_size)))
-            return (np.ma.masked_array(x__.astype('int'), mask=mask,
+            if return_int:
+                rtype='int'
+            else:
+                rtype='float'
+            return (np.ma.masked_array(x__.astype(rtype), mask=mask,
                                        fill_value=-1),
-                    np.ma.masked_array(y__.astype('int'), mask=mask,
+                    np.ma.masked_array(y__.astype(rtype), mask=mask,
                                        fill_value=-1))
         else:
             if ((x__ < 0 or x__ > self.x_size) or
-                    (y__ < 0 or y__ > self.y_size)):
+                (y__ < 0 or y__ > self.y_size)) and outside_error:
                 raise ValueError('Point outside area:( %f %f)' % (x__, y__))
-            return int(x__), int(y__)
+
+            if return_int:
+                return int(x__), int(y__)
+            else:
+                return x__, y__
 
 
-    def get_xy_from_proj_coords(self, xm_, ym_):
+    def get_xy_from_proj_coords(self, xm_, ym_, outside_error=True, return_int=True):
         """Retrieve closest x and y coordinates (column, row indices) for a 
         location specified with projection coordinates (xm_,ym_) in meters. 
         A ValueError is raised, if the return point is outside the area domain. If
@@ -743,16 +751,23 @@ class AreaDefinition(BaseDefinition):
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
             mask = (((x__ < 0) | (x__ > self.x_size)) |
                     ((y__ < 0) | (y__ > self.y_size)))
-            return (np.ma.masked_array(x__.astype('int'), mask=mask,
+            if return_int:
+                rtype='int'
+            else:
+                rtype='float'
+            return (np.ma.masked_array(x__.astype(rtype), mask=mask,
                                        fill_value=-1),
-                    np.ma.masked_array(y__.astype('int'), mask=mask,
+                    np.ma.masked_array(y__.astype(rtype), mask=mask,
                                        fill_value=-1))
         else:
             if ((x__ < 0 or x__ > self.x_size) or
-                    (y__ < 0 or y__ > self.y_size)):
+                (y__ < 0 or y__ > self.y_size)) and outside_error:
                 raise ValueError('Point outside area:( %f %f)' % (x__, y__))
-            return int(x__), int(y__)
 
+            if return_int:
+                return int(x__), int(y__)
+            else:
+                return x__, y__
 
     def get_lonlat(self, row, col):
         """Retrieves lon and lat values of single point in area grid
