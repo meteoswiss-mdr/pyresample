@@ -24,34 +24,13 @@
 import sys
 import logging
 import numpy as np
+from pyresample.test.utils import create_test_longitude, create_test_latitude
 if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
 
 LOG = logging.getLogger(__name__)
-
-
-def create_test_longitude(start, stop, shape, twist_factor=0.0, dtype=np.float32):
-    if start > stop:
-        stop += 360.0
-
-    lon_row = np.linspace(start, stop, num=shape[1]).astype(dtype)
-    twist_array = np.arange(shape[0]).reshape((shape[0], 1)) * twist_factor
-    lon_array = np.repeat([lon_row], shape[0], axis=0)
-    lon_array += twist_array
-
-    if stop > 360.0:
-        lon_array[lon_array > 360.0] -= 360
-    return lon_array
-
-
-def create_test_latitude(start, stop, shape, twist_factor=0.0, dtype=np.float32):
-    lat_col = np.linspace(start, stop, num=shape[0]).astype(dtype).reshape((shape[0], 1))
-    twist_array = np.arange(shape[1]) * twist_factor
-    lat_array = np.repeat(lat_col, shape[1], axis=1)
-    lat_array += twist_array
-    return lat_array
 
 
 dynamic_wgs84 = {
@@ -179,6 +158,38 @@ class TestLL2CRDynamic(unittest.TestCase):
         self.assertTrue(np.all(np.diff(lon_arr[0]) >= 0), "ll2cr didn't return monotonic columns over the dateline")
 
 
+class TestLL2CRWrapper(unittest.TestCase):
+    def test_basic1(self):
+        from pyresample.ewa import ll2cr
+        from pyresample.geometry import SwathDefinition, AreaDefinition
+        from pyresample.utils import proj4_str_to_dict
+        lon_arr = create_test_longitude(-95.0, -75.0, (50, 100), dtype=np.float64)
+        lat_arr = create_test_latitude(18.0, 40.0, (50, 100), dtype=np.float64)
+        swath_def = SwathDefinition(lon_arr, lat_arr)
+        grid_info = static_lcc.copy()
+        cw = grid_info["cell_width"]
+        ch = grid_info["cell_height"]
+        ox = grid_info["origin_x"]
+        oy = grid_info["origin_y"]
+        w = grid_info["width"]
+        h = grid_info["height"]
+        half_w = abs(cw / 2.)
+        half_h = abs(ch / 2.)
+        extents = [
+            ox - half_w, oy - h * abs(ch) - half_h,
+            ox + w * abs(cw) + half_w, oy + half_h
+        ]
+        area = AreaDefinition('test_area', 'test_area', 'test_area',
+                              proj4_str_to_dict(grid_info['proj4_definition']),
+                              w, h, extents)
+        points_in_grid, lon_res, lat_res, = ll2cr(swath_def, area,
+                                                  fill=np.nan, copy=False)
+        self.assertEqual(points_in_grid, lon_arr.size, "all points should be contained in a dynamic grid")
+        self.assertIs(lon_arr, lon_res)
+        self.assertIs(lat_arr, lat_res)
+        self.assertEqual(points_in_grid, lon_arr.size, "all these test points should fall in this grid")
+
+
 def suite():
     """The test suite.
     """
@@ -186,6 +197,7 @@ def suite():
     mysuite = unittest.TestSuite()
     mysuite.addTest(loader.loadTestsFromTestCase(TestLL2CRStatic))
     mysuite.addTest(loader.loadTestsFromTestCase(TestLL2CRDynamic))
+    mysuite.addTest(loader.loadTestsFromTestCase(TestLL2CRWrapper))
 
     return mysuite
 

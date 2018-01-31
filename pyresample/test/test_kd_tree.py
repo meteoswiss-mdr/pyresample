@@ -4,8 +4,9 @@ import os
 import sys
 
 import numpy
+
+from pyresample import data_reduce, geometry, kd_tree, utils
 from pyresample.test.utils import catch_warnings
-from pyresample import kd_tree, utils, geometry, data_reduce
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -15,26 +16,30 @@ else:
 
 class Test(unittest.TestCase):
 
-    area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
-                                       {'a': '6378144.0',
-                                        'b': '6356759.0',
-                                        'lat_0': '50.00',
-                                        'lat_ts': '50.00',
-                                        'lon_0': '8.00',
-                                        'proj': 'stere'},
-                                       800,
-                                       800,
-                                       [-1370912.72,
-                                           -909968.64000000001,
-                                           1029087.28,
-                                           1490031.3600000001])
+    @classmethod
+    def setUpClass(cls):
+        cls.area_def = geometry.AreaDefinition('areaD',
+                                               'Europe (3km, HRV, VTC)',
+                                               'areaD',
+                                               {'a': '6378144.0',
+                                                'b': '6356759.0',
+                                                'lat_0': '50.00',
+                                                'lat_ts': '50.00',
+                                                'lon_0': '8.00',
+                                                'proj': 'stere'},
+                                               800,
+                                               800,
+                                               [-1370912.72,
+                                                   -909968.64000000001,
+                                                   1029087.28,
+                                                   1490031.3600000001])
 
-    tdata = numpy.array([1, 2, 3])
-    tlons = numpy.array([11.280789, 12.649354, 12.080402])
-    tlats = numpy.array([56.011037, 55.629675, 55.641535])
-    tswath = geometry.SwathDefinition(lons=tlons, lats=tlats)
-    tgrid = geometry.CoordinateDefinition(lons=numpy.array([12.562036]),
-                                          lats=numpy.array([55.715613]))
+        cls.tdata = numpy.array([1, 2, 3])
+        cls.tlons = numpy.array([11.280789, 12.649354, 12.080402])
+        cls.tlats = numpy.array([56.011037, 55.629675, 55.641535])
+        cls.tswath = geometry.SwathDefinition(lons=cls.tlons, lats=cls.tlats)
+        cls.tgrid = geometry.CoordinateDefinition(
+            lons=numpy.array([12.562036]), lats=numpy.array([55.715613]))
 
     def test_nearest_base(self):
         res = kd_tree.resample_nearest(self.tswath,
@@ -78,7 +83,7 @@ class Test(unittest.TestCase):
             self.assertTrue(
                 len(w) > 0, 'Failed to create neighbour warning')
             self.assertTrue((any('Searching' in str(_w.message) for _w in w)),
-                'Failed to create correct neighbour warning')
+                            'Failed to create correct neighbour warning')
 
         expected_res = 2.20206560694
         expected_stddev = 0.707115076173
@@ -101,7 +106,7 @@ class Test(unittest.TestCase):
             self.assertTrue(
                 len(w) > 0, 'Failed to create neighbour warning')
             self.assertTrue((any('Searching' in str(_w.message) for _w in w)),
-                'Failed to create correct neighbour warning')
+                            'Failed to create correct neighbour warning')
 
         self.assertAlmostEqual(res[0], 2.32193149, 5,
                                'Failed to calculate custom weighting with uncertainty')
@@ -121,6 +126,25 @@ class Test(unittest.TestCase):
         expected = 15874591.0
         self.assertEqual(cross_sum, expected,
                          msg='Swath resampling nearest failed')
+
+    def test_nearest_masked_swath_target(self):
+        """Test that a masked array works as a target."""
+        data = numpy.fromfunction(lambda y, x: y * x, (50, 10))
+        lons = numpy.fromfunction(lambda y, x: 3 + x, (50, 10))
+        lats = numpy.fromfunction(lambda y, x: 75 - y, (50, 10))
+        mask = numpy.ones_like(lons, dtype=numpy.bool)
+        mask[::2, ::2] = False
+        swath_def = geometry.SwathDefinition(
+            lons=numpy.ma.masked_array(lons, mask=mask), # numpy.ones_like(lons, dtype=numpy.bool)),
+            lats=numpy.ma.masked_array(lats, mask=False)
+        )
+        res = kd_tree.resample_nearest(swath_def, data.ravel(),
+                                       swath_def, 50000, segments=3)
+        cross_sum = res.sum()
+        # expected = 12716  # if masks aren't respected
+        expected = 12000
+        self.assertEqual(cross_sum, expected,
+                         msg='Swath resampling masked nearest failed')
 
     def test_nearest_1d(self):
         data = numpy.fromfunction(lambda x, y: x * y, (800, 800))
@@ -345,17 +369,19 @@ class Test(unittest.TestCase):
             self.assertTrue(any(['Possible more' in str(
                 x.message) for x in w]), 'Failed to create correct neighbour radius warning')
         cross_sum = res.sum()
-        cross_sum_stddev = stddev.sum()
         cross_sum_counts = counts.sum()
         expected = 1461.84313918
-        expected_stddev = 0.446204424799
+        expected_stddev = [0.446193170875, 0.443606880035, 0.438586349519]
         expected_counts = 4934802.0
         self.assertTrue(res.shape == stddev.shape and stddev.shape ==
                         counts.shape and counts.shape == (800, 800, 3))
         self.assertAlmostEqual(cross_sum, expected,
                                msg='Swath multi channel resampling gauss failed on data')
-        self.assertAlmostEqual(cross_sum_stddev, expected_stddev,
-                               msg='Swath multi channel resampling gauss failed on stddev')
+        for i, e_stddev in enumerate(expected_stddev):
+            cross_sum_stddev = stddev[:, :, i].sum()
+            print(cross_sum_stddev, e_stddev)
+            self.assertAlmostEqual(cross_sum_stddev, e_stddev,
+                                   msg='Swath multi channel resampling gauss failed on stddev (channel {})'.format(i))
         self.assertAlmostEqual(cross_sum_counts, expected_counts,
                                msg='Swath multi channel resampling gauss failed on counts')
 
@@ -703,7 +729,7 @@ class Test(unittest.TestCase):
         lats = numpy.fromfunction(lambda y, x: 75 - y, (50, 10))
         grid_def = geometry.GridDefinition(lons, lats)
         lons = numpy.asarray(lons, dtype='f4')
-        lats  = numpy.asarray(lats, dtype='f4')
+        lats = numpy.asarray(lats, dtype='f4')
         swath_def = geometry.SwathDefinition(lons=lons, lats=lats)
         valid_input_index, valid_output_index, index_array, distance_array = \
             kd_tree.get_neighbour_info(swath_def,
@@ -822,3 +848,6 @@ def suite():
     mysuite.addTest(loader.loadTestsFromTestCase(Test))
 
     return mysuite
+
+if __name__ == '__main__':
+    unittest.main()
