@@ -30,6 +30,7 @@ http://www.ahinson.com/algorithms_general/Sections/InterpolationRegression/Inter
 
 import numpy as np
 from pyproj import Proj
+import warnings
 
 from pyresample import kd_tree
 
@@ -96,6 +97,12 @@ def resample_bilinear(data, source_geo_def, target_area_def, radius=50e3,
         result = np.ma.masked_invalid(result)
     else:
         result[np.isnan(result)] = fill_value
+
+    # Reshape to target area shape
+    shp = target_area_def.shape
+    result = result.reshape((shp[0], shp[1], data.shape[1]))
+    # Remove extra dimensions
+    result = np.squeeze(result)
 
     return result
 
@@ -210,11 +217,13 @@ def get_bil_info(source_geo_def, target_area_def, radius=50e3, neighbours=32,
     #     source_geo_def = SwathDefinition(lons, lats)
 
     # Calculate neighbour information
-    (input_idxs, output_idxs, idx_ref, dists) = \
-        kd_tree.get_neighbour_info(source_geo_def, target_area_def,
-                                   radius, neighbours=neighbours,
-                                   nprocs=nprocs, reduce_data=reduce_data,
-                                   segments=segments, epsilon=epsilon)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        (input_idxs, output_idxs, idx_ref, dists) = \
+            kd_tree.get_neighbour_info(source_geo_def, target_area_def,
+                                       radius, neighbours=neighbours,
+                                       nprocs=nprocs, reduce_data=reduce_data,
+                                       segments=segments, epsilon=epsilon)
 
     del output_idxs, dists
 
@@ -389,8 +398,14 @@ def _mask_coordinates(lons, lats):
     lats = lats.ravel()
     idxs = ((lons < -180.) | (lons > 180.) |
             (lats < -90.) | (lats > 90.))
-    lons[idxs] = np.nan
-    lats[idxs] = np.nan
+    if hasattr(lons, 'mask'):
+        lons = np.ma.masked_where(idxs | lons.mask, lons)
+    else:
+        lons[idxs] = np.nan
+    if hasattr(lats, 'mask'):
+        lats = np.ma.masked_where(idxs | lats.mask, lats)
+    else:
+        lats[idxs] = np.nan
 
     return lons, lats
 
@@ -491,8 +506,15 @@ def _get_output_xy(target_area_def, proj):
     """Get x/y coordinates of the target grid."""
     # Read output coordinates
     out_lons, out_lats = target_area_def.get_lonlats()
+
+    # Replace masked arrays with np.nan'd ndarrays
+    out_lons = _convert_masks_to_nans(out_lons)
+    out_lats = _convert_masks_to_nans(out_lats)
+
+    # Mask invalid coordinates
     out_lons, out_lats = _mask_coordinates(out_lons, out_lats)
 
+    # Convert coordinates to output projection x/y space
     out_x, out_y = proj(out_lons, out_lats)
 
     return out_x, out_y
@@ -513,10 +535,23 @@ def _get_input_xy(source_geo_def, proj, input_idxs, idx_ref):
     in_lons = in_lons[idx_ref]
     in_lats = in_lats[idx_ref]
 
+    # Replace masked arrays with np.nan'd ndarrays
+    in_lons = _convert_masks_to_nans(in_lons)
+    in_lats = _convert_masks_to_nans(in_lats)
+
     # Convert coordinates to output projection x/y space
     in_x, in_y = proj(in_lons, in_lats)
 
     return in_x, in_y
+
+
+def _convert_masks_to_nans(arr):
+    """Remove masked array masks and replace corresponding values with nans"""
+    if hasattr(arr, 'mask'):
+        mask = arr.mask
+        arr = arr.data
+        arr[mask] = np.nan
+    return arr
 
 
 def _check_data_shape(data, input_idxs):

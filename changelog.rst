@@ -2,6 +2,458 @@ Changelog
 =========
 
 
+v1.8.2 (2018-03-01)
+-------------------
+- update changelog. [davidh-ssec]
+- Bump version: 1.8.1 → 1.8.2. [davidh-ssec]
+- Merge pull request #104 from pytroll/bugfix-chunk-size. [David Hoese]
+
+  Allow chunk size in dask methods to be 2D
+- Fix line too long. [davidh-ssec]
+- Fix chunk size 'get_proj_vectors_dask' so it can be 2D. [davidh-ssec]
+
+
+v1.8.1 (2018-02-22)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.8.0 → 1.8.1. [Martin Raspaud]
+- Merge pull request #101 from floriankrb/master. [Martin Raspaud]
+
+  Update README to include correct versions of python tested
+- Update README.md. [Florian]
+- Update README.md. [Florian]
+- Merge pull request #99 from pytroll/feature-dynamic-projs. [Martin
+  Raspaud]
+
+  Add support for dynamic resampling for most projections
+- Do not overwrite provided lon_0 and lat_0. [Martin Raspaud]
+- Add support for dynamic resampling for most projections. [Martin
+  Raspaud]
+- Merge pull request #98 from pytroll/bugfix-data-reduce. [Martin
+  Raspaud]
+
+  Revert "Fix data reduction when poles are within area"
+- Add test for data reduction over the poles. [Martin Raspaud]
+- Make pep8 happy. [Martin Raspaud]
+- Revert "Fix data reduction when poles are within area" [Martin
+  Raspaud]
+
+  This reverts commit 1c9ac493aea549a354f384059e9aa6ad41558fd8.
+
+- Merge pull request #96 from pytroll/bugfix-partially-invalid-source-
+  data. [David Hoese]
+
+  Fix xarray resampling for partially invalid source datasets
+- Fix xarray resampling for partially invalid source datasets. [Martin
+  Raspaud]
+
+
+v1.8.0 (2018-02-02)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.7.1 → 1.8.0. [Martin Raspaud]
+- Merge branch 'develop' into new_release. [Martin Raspaud]
+- Merge pull request #95 from pytroll/bugfix-pyproj-version. [Martin
+  Raspaud]
+
+  Provide the minimum version of pyproj needed
+- Provide the minimum version of pyproj needed. [Martin Raspaud]
+- Merge pull request #94 from pytroll/optimize-xarray. [Martin Raspaud]
+
+  Optimize xarray
+- Add test for new wrap_and_check function. [davidh-ssec]
+- Rename chunk size environment variable to PYTROLL_CHUNK_SIZE. [davidh-
+  ssec]
+- Fix circular import between geometry and init's CHUNK_SIZE. [davidh-
+  ssec]
+- Revert import removal in init and add easy access imports. [davidh-
+  ssec]
+
+  Includes attempt to remove circular dependency between utils and
+  geometry module.
+
+- Use central CHUNK_SIZE constant for dask based operations. [davidh-
+  ssec]
+- Add `check_and_wrap` utility function and fix various docstring
+  issues. [davidh-ssec]
+- Remove tests for removed features. [davidh-ssec]
+- Remove longitude/latitude validity checks in BaseDefinition. [davidh-
+  ssec]
+
+  This was causing issues with dask based inputs and was a performance
+  penalty for all use cases even when the arrays were valid. Removing
+  this check should not affect 99% of users.
+
+- Combine dask operations to improve resampling performance. [davidh-
+  ssec]
+
+  Still a lot that could be done probably.
+
+- Fix dask minimum version number for meshgrid support. [davidh-ssec]
+- Add dask extra to setup.py to specify minimum dask version. [davidh-
+  ssec]
+
+  pyresample uses dask meshgrid which came in version 1.9
+
+- Merge pull request #86 from pytroll/feature-multiple-dims. [Martin
+  Raspaud]
+
+  [WIP] Feature multiple dims
+- Remove explicit chunksize. [Martin Raspaud]
+- Clean up with pep8. [Martin Raspaud]
+- Take care of coordinates when resampling. [Martin Raspaud]
+- Define default blocksizes for dask arrays. [Martin Raspaud]
+- Merge branch 'feature-optimize-dask' into feature-multiple-dims.
+  [Martin Raspaud]
+- Style cleanup. [Martin Raspaud]
+- Fix get_hashable_array for variations of np arrays. [Martin Raspaud]
+- Print warning when wrapping is needed independently of type. [Martin
+  Raspaud]
+- Change default blocksize to 5000. [Martin Raspaud]
+- Make use of dask's map_blocks. [Martin Raspaud]
+
+  Instead of writing our own array definitions
+- Revert "Make resampling lazy" [Martin Raspaud]
+
+  This reverts commit 5a4f9c342f9c8262c06c28986163fc682242ce75.
+
+- Make resampling lazy. [Martin Raspaud]
+- Revert yapf change. [Martin Raspaud]
+- Clean up code (pycodestyle, pydocstyle) [Martin Raspaud]
+- Make XR resampling work with more dimensions. [Martin Raspaud]
+- Merge pull request #91 from avalentino/issues/gh-090. [David Hoese]
+
+  Fix test_get_array_hashable on big-endian machines (closes #90)
+- Fix test_get_array_hashable on big-endian machines. [Antonio
+  Valentino]
+
+
+v1.7.1 (2017-12-21)
+-------------------
+- update changelog. [davidh-ssec]
+- Bump version: 1.7.0 → 1.7.1. [davidh-ssec]
+- Merge pull request #88 from pytroll/bugfix-masked-target. [David
+  Hoese]
+
+  Fix kdtree when target lons/lats are masked arrays
+- Add test for masked valid_output_index fix. [davidh-ssec]
+- Move bilinear test setup to a special method. [davidh-ssec]
+- Fix kdtree when target lons/lats are masked arrays. [davidh-ssec]
+- Merge pull request #89 from Funkensieper/fix-masks-in-get-resampled-
+  image. [David Hoese]
+
+  Fix masks in grid.get_resampled_image
+- Add test for mask preservation. [Stephan Finkensieper]
+- Distinguish between ndarrays and masked arrays. [Stephan Finkensieper]
+- Fix masks in grid.get_resampled_image. [Stephan Finkensieper]
+
+  Use numpy.ma version of row_stack to prevent loosing the mask of
+  large images (rows > cut_off)
+
+- Add github templates. [Martin Raspaud]
+- Merge pull request #84 from pytroll/feature-add-hash. [Martin Raspaud]
+
+  Add hash method to AreaDefinition and SwathDefinition
+- Fix dask array not being hashable in py3.x. [Martin Raspaud]
+- Use identity checking instead of equality. [Martin Raspaud]
+- Do not has the mask if it's empty. [Martin Raspaud]
+- Bugfix geometry test. [Martin Raspaud]
+- Replace hash value checks with type checks. [Martin Raspaud]
+
+  The value can be different depending on the python version apparently.
+- Add dask and xarray for testing on travis. [Martin Raspaud]
+- Fix case of missing xarray dependency in the tests. [Martin Raspaud]
+- Add __hash__ for SwathDefinitions, along with some unittests. [Martin
+  Raspaud]
+- Add hash method to AreaDefinition. [davidh-ssec]
+
+  Removes annoying log message when xarray/dask is missing
+
+- Merge branch 'feature-xarray-improvements' into develop. [Martin
+  Raspaud]
+
+  Conflicts:
+  	pyresample/geometry.py
+
+- Type coords to np.float. [Martin Raspaud]
+- Add support for fill_value in nn search. [Martin Raspaud]
+- Change the get_lonlats_dask interface to return a tuple. [Martin
+  Raspaud]
+- Fix masking bad latitude values. [davidh-ssec]
+- Fix consistency with numpy arrays. [davidh-ssec]
+- Allow xarrays internally in geometry objects. [davidh-ssec]
+- Merge remote-tracking branch 'origin/develop' into develop. [davidh-
+  ssec]
+
+  # Conflicts:
+  #	.travis.yml
+
+- Fix proj4 dict to string against recent changes to str to dict funcs.
+  [davidh-ssec]
+- Change appveyor python 3.5 environments to python 3.6. [davidh-ssec]
+
+  Also removes slack notification webhook which is no longer the
+  recommended way to post to slack from appveyor.
+
+- Exclude buggy version of matplotlib in travis tests. [davidh-ssec]
+- Fix proj4 dict conversion test. [davidh-ssec]
+- Use more descriptive variable names. [davidh-ssec]
+- Add proj4_dict_to_str utility function. [davidh-ssec]
+
+  Includes fixes for dynamic area definitions proj_id and
+  small performance improvement for projection coordinate generation
+
+- Merge pull request #83 from loreclem/master. [Martin Raspaud]
+
+  Added ROTATION in an area definition
+- Bugfix in get_area_def. [lorenzo clementi]
+- Unit test for rotation. [lorenzo clementi]
+- Removed unused parameter. [lorenzo clementi]
+- Now working also with yaml. [lorenzo clementi]
+- Code improvements. [lorenzo clementi]
+- Added ROTATION in an area definition. [lorenzo clementi]
+
+
+v1.7.0 (2017-10-13)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.6.1 → 1.7.0. [Martin Raspaud]
+- Merge pull request #82 from pytroll/fix-resample-bilinear. [David
+  Hoese]
+
+  Fix output shape of resample_bilinear()
+- Reshape output to have correct shape for the output area and num of
+  chans. [Panu Lahtinen]
+- Update tests to check proper output shape for resample_bilinear()
+  [Panu Lahtinen]
+- Merge pull request #79 from pytroll/fix-bil-documentation. [David
+  Hoese]
+
+  Fix example data for BIL, clarify text and add missing output_shape p…
+- Merge branch 'fix-bil-documentation' of
+  https://github.com/mraspaud/pyresample into fix-bil-documentation.
+  [Panu Lahtinen]
+- Fix example data for BIL, clarify text and add missing output_shape
+  param. [Panu Lahtinen]
+- Fix example data for BIL, clarify text and add missing output_shape
+  param. [Panu Lahtinen]
+- Merge pull request #75 from pytroll/fix-bil-mask-deprecation. [David
+  Hoese]
+
+  Fix bil mask deprecation
+- Merge branch 'develop' into fix-bil-mask-deprecation. [David Hoese]
+- Merge pull request #81 from pytroll/fix-reduce-bil-memory-use. [David
+  Hoese]
+
+  Reduce the memory use for ImageContainerBilinear tests
+- Reduce area size for BIL, reduce neighbours and adjust expected
+  results. [Panu Lahtinen]
+- Add proj4_dict_to_str utility function (#78) [David Hoese]
+
+  * Add proj4_dict_to_str utility function
+
+  Includes fixes for dynamic area definitions proj_id and
+  small performance improvement for projection coordinate generation
+
+  * Use more descriptive variable names
+
+  * Fix proj4 dict conversion test
+
+  * Exclude buggy version of matplotlib in travis tests
+
+  * Change appveyor python 3.5 environments to python 3.6
+
+  Also removes slack notification webhook which is no longer the
+  recommended way to post to slack from appveyor.
+
+  * Fix proj4 dict to string against recent changes to str to dict funcs
+
+- Utils edits for retreiving projection semi-major / semi-minor axes
+  (#77) [goodsonr]
+
+  proj4 strings converted to dictionary now consistent with other code (no longer has leading '+')
+  new logic for reporting projection semi-major / semi-minor axes ('a', 'b') based on information in proj4
+
+- Merge pull request #71 from pytroll/feature-bilinear-image. [David
+  Hoese]
+
+  Add image container for bilinear interpolation
+- Fix test result assertation. [Panu Lahtinen]
+- Add tests for ImageContainerBilinear, rewrap long lines. [Panu
+  Lahtinen]
+- Fix docstrings. [Panu Lahtinen]
+- Mention also ImageContainerBilinear. [Panu Lahtinen]
+- Handle 3D input data with bilinear interpolation. [Panu Lahtinen]
+- Add ImageContainerBilinear, autopep8. [Panu Lahtinen]
+- Merge pull request #74 from pytroll/fix-close-area-file. [David Hoese]
+
+  Use context manager to open area definition files
+- Use context manager to open files, PEP8. [Panu Lahtinen]
+- Merge pull request #76 from pytroll/feature-xarray. [Martin Raspaud]
+
+  Support resampling of xarray.DataArrays
+- Move docstring to init for consistency. [Martin Raspaud]
+- Merge develop into feature_xarray. [Martin Raspaud]
+- Support get_lonlats_dask in StackedAreaDefinitions. [Martin Raspaud]
+- Add get_lonlats_dask for SwathDefinitions. [Martin Raspaud]
+- Fix resampling of multidimensional xarrays. [Martin Raspaud]
+- Support xarray and use dask for simple cases. [Martin Raspaud]
+- WIP: Resampler for xarrays using dask. [Martin Raspaud]
+- Fix formatting. [Martin Raspaud]
+- Optimize memory consumption. [Martin Raspaud]
+- Clean up doc formatting. [Martin Raspaud]
+- Add dask.Array returning get_lonlats and get_proj_coords. [Martin
+  Raspaud]
+- Remove Python 3.3 from travis tests, it's not supported anymore. [Panu
+  Lahtinen]
+- Supress UserWarning about possible extra neighbours within search
+  radius. [Panu Lahtinen]
+- Handle masked arrays properly for new Numpy versions. [Panu Lahtinen]
+
+
+v1.6.1 (2017-09-18)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.6.0 → 1.6.1. [Martin Raspaud]
+- Merge pull request #60 from pytroll/feature-dynamic-area. [David
+  Hoese]
+
+  Add support for dynamic areas
+- Merge branch 'develop' into feature-dynamic-area. [Martin Raspaud]
+- Apply assert_allclose to proj dicts for tests. [Martin Raspaud]
+- Fix some style issues. [Martin Raspaud]
+- Set DynamicArea proj to `omerc` by default. [Martin Raspaud]
+- Implement proposed changes in PR review. [Martin Raspaud]
+- Use numpy's assert almost equal for area_extent comparisons. [Martin
+  Raspaud]
+- Document the DynamicArea class. [Martin Raspaud]
+- Fix optimal projection computation tests. [Martin Raspaud]
+- Pep8 cleanup. [Martin Raspaud]
+- Valid index computation optimization. [Martin Raspaud]
+- Change bb computation api to use the whole proj_dict. [Martin Raspaud]
+- Fix unittests for updated omerc computations. [Martin Raspaud]
+- Use other azimuth direction for omerc. [Martin Raspaud]
+- Flip x and y size in omerc projection. [Martin Raspaud]
+- Bugfix typo. [Martin Raspaud]
+- Allow lons and lats to be any array in bb computation. [Martin
+  Raspaud]
+- Add SwathDefinition tests to the test suite. [Martin Raspaud]
+- Support bounding box area computation from SwathDefintion. [Martin
+  Raspaud]
+
+  This add support for computing a bounding box area from a swath definition that would fit optimally. The default projection is oblique mercator, with is optimal for locally received imager passes.
+- Add support for dynamic areas. [Martin Raspaud]
+- Merge pull request #70 from pytroll/feature-radius-parameters. [David
+  Hoese]
+
+  Add 'proj4_radius_parameters' to calculate 'a' and 'b' from ellps
+- Add tests for proj4_radius_parameters. [davidh-ssec]
+- Fix typo in function call in radius parameters. [davidh-ssec]
+- Add 'proj4_radius_parameters' to calculate 'a' and 'b' from ellps.
+  [davidh-ssec]
+- Merge pull request #68 from pytroll/feature-56. [Martin Raspaud]
+
+  Fix GridDefinition as permitted definition in preprocessing utils
+- Add more preprocessing tests. [davidh-ssec]
+- Fix preprocessing functions to use duck type on provided areas.
+  [davidh-ssec]
+- Fix GridDefinition as permitted definition in preprocessing utils.
+  [davidh-ssec]
+
+
+v1.6.0 (2017-09-12)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.5.0 → 1.6.0. [Martin Raspaud]
+- Make sure x_size and y_size are ints. [Martin Raspaud]
+- Merge pull request #69 from pytroll/bugfix-66. [Martin Raspaud]
+
+  Fix write to mask affecting original mask in future versions of numpy
+
+  Fixes #66
+- Add python 3.6 to travis tests. [davidh-ssec]
+- Fix write to mask affecting original mask in future versions of numpy.
+  [davidh-ssec]
+
+  Fix #66
+
+- Merge pull request #67 from pytroll/bugfix-13. [Martin Raspaud]
+
+  Rename `proj_x/y_coords` to `projection_x/y_coords`
+- Rename `proj_x/y_coords` to `projection_x/y_coords` [davidh-ssec]
+
+  Fix #13
+
+- Merge pull request #63 from pytroll/feature-multiple-area-files.
+  [David Hoese]
+
+  Parse multiple area files
+- Fix tests_require in setup.py. [davidh-ssec]
+- Use libgeos-dev to depend on the C++ libgeos-X.X.X and libgeos-c1.
+  [davidh-ssec]
+- Add simple tests for parsing multiple yaml area strings. [davidh-ssec]
+- Fix indentation in area file parsing functions. [davidh-ssec]
+- Add ability to parse multiple area files at once. [davidh-ssec]
+- Merge pull request #65 from pytroll/fix-numpy-1.13. [Martin Raspaud]
+
+  Fix numpy 1.13 compatibility
+- Fix boolean mask array usage in gaussian resampling. [davidh-ssec]
+
+  In numpy 1.13 it is illegal to index an array with a boolean
+  array of a different size.
+
+- Add mock to test dependencies for python <3.3. [davidh-ssec]
+- Use prepackaged numexpr in bdist_rpm. [Martin Raspaud]
+
+
+v1.5.0 (2017-05-02)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.4.1 → 1.5.0. [Martin Raspaud]
+- Merge pull request #58 from pytroll/feature-yaml-areas. [David Hoese]
+
+  Add support for areas in yaml format
+- Remove support for python 2.6. [Martin Raspaud]
+- Explain that x/y can be lon/lat. [Martin Raspaud]
+- Fix __str__ and dump of area defs to be more explicit. [Martin
+  Raspaud]
+- Add missing doctest file. [Martin Raspaud]
+- Add yaml as a requirement. [Martin Raspaud]
+- Add support for areas in yaml format. [Martin Raspaud]
+- Fix travis script not going back to base directory for coveralls to
+  work. [davidh-ssec]
+
+  Sphinx was used for testing and included a `cd` command but that made coveralls unable to find the .coverage output.
+
+  (cherry picked from commit 33e692a)
+
+- Replace dict comprehension for 2.6 compatibility. [davidh-ssec]
+- Add basic ll2cr and fornav wrapper tests. [davidh-ssec]
+
+
+v1.4.1 (2017-04-07)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.4.0 → 1.4.1. [Martin Raspaud]
+- Fix non-contiguous arrays passed to EWA resampling. [davidh-ssec]
+
+  Includes fixes for tuple `out` and proper passing of keyword arguments
+
+- Ensure pyproj gets ndarrays with np.nans instead of masked arrays.
+  [Panu Lahtinen]
+- Handle older numpy versions without "copy" kwrd in .astype() [Panu
+  Lahtinen]
+
+
+v1.4.0 (2017-04-02)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.3.1 → 1.4.0. [Martin Raspaud]
+- Add mock to appveyor. [Martin Raspaud]
+- Fix 2.6 compatibility. [Martin Raspaud]
+- Add StackedAreaDefinition class and helper functions. [Martin Raspaud]
+
+
 v1.3.1 (2017-03-22)
 -------------------
 - update changelog. [Martin Raspaud]
@@ -286,6 +738,7 @@ v1.2.2 (2016-06-21)
   Without this, the compilation of the ewa extension crashes.
 
 
+
 v1.2.1 (2016-06-21)
 -------------------
 - update changelog. [Martin Raspaud]
@@ -441,9 +894,11 @@ v1.2.0 (2016-06-17)
 - Make kd_tree test work on older numpy version. [Martin Raspaud]
 
   VisibleDeprecationWarning is not available in numpy <1.9.
+
 - Adapt to newest pykdtree version. [Martin Raspaud]
 
   The kdtree object's attribute `data_pts` has been renamed to `data`.
+
 - Run tests on python 3.5 in travis also. [Martin Raspaud]
 
 
@@ -455,6 +910,7 @@ v1.1.6 (2016-02-25)
 
   A previous commit was looking for a 'data_pts' attribute in the kdtree
   object, which is available in pykdtree, but not scipy.
+
 - Merge pull request #32 from mitkin/master. [Martin Raspaud]
 
   [tests] Skip deprecation warnings in test_gauss_multi_uncert
@@ -466,6 +922,7 @@ v1.1.6 (2016-02-25)
   The latest matplotlib (1.5) doesn't support python 2.6 and 3.3. This patch
   chooses the right matplotlib version to install depending on the python
   version at hand.
+
 - Skip deprecation warnings. [Mikhail Itkin]
 
   Catch the rest of the warnings. Check if there is only one, and
@@ -507,6 +964,7 @@ Other
 - Bugfix to address a numpy DeprecationWarning. [Martin Raspaud]
 
   Numpy won't take non-integer indices soon, so make index an int.
+
 - Merge branch 'release-1.1.3' [Martin Raspaud]
 - Merge branch 'licence-lgpl' into pre-master. [Martin Raspaud]
 - Switch to lgplv3, and bump up version number. [Martin Raspaud]
@@ -728,7 +1186,7 @@ Other
 - Set svn:mime-type. [StorPipfugl]
 - Corrected doc errors. [StorPipfugl]
 - Removed dist dir. [StorPipfugl]
-- No commit message. [StorPipfugl]
+-  [StorPipfugl]
 - Updated documentation. New release. [StorPipfugl]
 - Started updating docstrings. [StorPipfugl]
 - Restructured API. [StorPipfugl]
@@ -741,9 +1199,8 @@ Other
 - Removed unneeded function. [StorPipfugl]
 - Mime types set. [StorPipfugl]
 - Mime types set. [StorPipfugl]
-- No commit message. [StorPipfugl]
+-  [StorPipfugl]
 - Moved to Google Code under GPLv3 license. [StorPipfugl]
 - moved to Google Code. [StorPipfugl]
-
 
 
