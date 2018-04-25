@@ -983,6 +983,9 @@ class AreaDefinition(BaseDefinition):
         pobj = _spatial_mp.Proj(self.proj4_string)
         xm_, ym_ = pobj(lon, lat)
 
+        x__ = (xm_ - upl_x) / xscale
+        y__ = (upl_y - ym_) / yscale
+
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
             mask = (((x__ < 0) | (x__ > self.x_size)) |
                     ((y__ < 0) | (y__ > self.y_size)))
@@ -1076,6 +1079,7 @@ class AreaDefinition(BaseDefinition):
                 return int(x__), int(y__)
             else:
                 return x__, y__
+
 
     def get_lonlat(self, row, col):
         """Retrieves lon and lat values of single point in area grid
