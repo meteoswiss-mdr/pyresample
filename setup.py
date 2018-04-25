@@ -5,7 +5,7 @@
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -17,7 +17,7 @@
 
 import imp
 # workaround python bug: http://bugs.python.org/issue15881#msg170215
-import multiprocessing
+import multiprocessing  # noqa: F401
 import os
 import sys
 
@@ -26,11 +26,16 @@ from setuptools.command.build_ext import build_ext as _build_ext
 
 version = imp.load_source('pyresample.version', 'pyresample/version.py')
 
-requirements = ['setuptools>=3.2', 'pyproj', 'numpy', 'configobj', 'pykdtree>=1.1.1']
+requirements = ['setuptools>=3.2', 'pyproj>=1.9.5.1', 'numpy>=1.10.0', 'configobj',
+                'pykdtree>=1.1.1', 'pyyaml', 'six']
 extras_require = {'pykdtree': ['pykdtree>=1.1.1'],
                   'numexpr': ['numexpr'],
-                  'quicklook': ['matplotlib', 'basemap', 'pillow']}
+                  'quicklook': ['matplotlib', 'basemap', 'pillow'],
+                  'dask': ['dask>=0.16.1']}
 
+test_requires = []
+if sys.version_info < (3, 3):
+    test_requires.append('mock')
 if sys.version_info < (2, 6):
     # multiprocessing is not in the standard library
     requirements.append('multiprocessing')
@@ -43,7 +48,9 @@ else:
 extensions = [
     Extension("pyresample.ewa._ll2cr", sources=["pyresample/ewa/_ll2cr.pyx"],
               extra_compile_args=extra_compile_args),
-    Extension("pyresample.ewa._fornav", sources=["pyresample/ewa/_fornav.pyx", "pyresample/ewa/_fornav_templates.cpp"], language="c++", extra_compile_args=extra_compile_args,
+    Extension("pyresample.ewa._fornav", sources=["pyresample/ewa/_fornav.pyx",
+                                                 "pyresample/ewa/_fornav_templates.cpp"],
+              language="c++", extra_compile_args=extra_compile_args,
               depends=["pyresample/ewa/_fornav_templates.h"])
 ]
 
@@ -109,6 +116,7 @@ if __name__ == "__main__":
           setup_requires=['numpy'],
           install_requires=requirements,
           extras_require=extras_require,
+          tests_require=test_requires,
           cmdclass={'build_ext': build_ext},
           ext_modules=cythonize(extensions),
           test_suite='pyresample.test.suite',

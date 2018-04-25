@@ -35,7 +35,9 @@ from pyresample.test import (
     test_utils,
     test_ewa_ll2cr,
     test_ewa_fornav,
-    )
+    test_bilinear,
+    test_data_reduce,
+)
 
 import unittest
 
@@ -55,7 +57,8 @@ def suite():
     mysuite.addTests(test_utils.suite())
     mysuite.addTests(test_ewa_ll2cr.suite())
     mysuite.addTests(test_ewa_fornav.suite())
-
+    mysuite.addTests(test_bilinear.suite())
+    mysuite.addTests(test_data_reduce.suite())
     return mysuite
 
 
