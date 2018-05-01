@@ -2,6 +2,93 @@ Changelog
 =========
 
 
+v1.9.0 (2018-04-27)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.8.3 → 1.9.0. [Martin Raspaud]
+- Merge pull request #114 from pytroll/feature-hash-update. [Martin
+  Raspaud]
+
+  Implement Deterministic hashing
+- Fix __hash__ inheritance block in python 3. [Martin Raspaud]
+- Add the hash attribute to all definitions. [Martin Raspaud]
+- Add the update_hash method, centralize __hash__ [Martin Raspaud]
+- Merge pull request #102 from pytroll/feature-cartopy-convert. [David
+  Hoese]
+
+  Add cartopy conversion method to AreaDefinition
+- Add license and copyright to plot and test_plot. [davidh-ssec]
+- Update appveyor badge to point to new project. [davidh-ssec]
+- Fix line too long. [davidh-ssec]
+- Merge branch 'develop' into feature-cartopy-convert. [davidh-ssec]
+
+  # Conflicts:
+  #	appveyor.yml
+  #	pyresample/__init__.py
+  #	pyresample/geometry.py
+  #	pyresample/kd_tree.py
+
+- Merge pull request #109 from pytroll/feature-better-omerc-azimuth.
+  [Martin Raspaud]
+
+  Make azimuth angle for omerc dynamic areas more robust
+- Fix tests for new omerc parameters computation. [Martin Raspaud]
+- Take care of azimuth flipping in omerc parameter computation. [Martin
+  Raspaud]
+- Take care of small omerc azimuth angles. [Martin Raspaud]
+- Use no_rot for better 2-point omerc fitting. [Martin Raspaud]
+- Make azimuth angle for omerc dynamic areas more robust. [Martin
+  Raspaud]
+- Add basemap to travis for doctests. [davidh-ssec]
+- Remove appveyor unused scripts. [davidh-ssec]
+- Fix conda dependencies on travis and switch to ci-helpers for
+  appveyor. [davidh-ssec]
+- Add missing coverage dependency to travis CI. [davidh-ssec]
+- Use conda for travis tests. [davidh-ssec]
+- Update github templates. [davidh-ssec]
+- Fix flake8 issues. [davidh-ssec]
+- Add basemap quicklook generation back in as a fallback. [davidh-ssec]
+- Install proj libraries binaries for cartopy. [davidh-ssec]
+- Remove python 3.4 and 3.5 from CI tests. [davidh-ssec]
+- Add simple cartopy conversion test. [davidh-ssec]
+- Skip basemap tests if basemap isn't available. [davidh-ssec]
+- Switch quicklook to use cartopy instead of basemap. [davidh-ssec]
+- Replace quicklook functionality with cartopy. [davidh-ssec]
+- Update documentation to include cartopy example. [davidh-ssec]
+- Add cartopy conversion method to AreaDefinition. [davidh-ssec]
+
+
+v1.8.3 (2018-03-19)
+-------------------
+- update changelog. [Martin Raspaud]
+- Bump version: 1.8.2 → 1.8.3. [Martin Raspaud]
+- Merge branch 'develop' into new_release. [Martin Raspaud]
+- Merge pull request #107 from pytroll/bugfix-memory-leak. [Martin
+  Raspaud]
+
+  [WIP] Remove closures to allow memory to be freed
+- Prevend dynamic areas to choke on NaNs. [Martin Raspaud]
+- Make CHUNK_SIZE int if taken from environment. [Martin Raspaud]
+- Reorganize indices assignments. [Martin Raspaud]
+- Remove closures to allow memory to be freed. [Martin Raspaud]
+- Merge pull request #106 from pytroll/bugfix-area-equality. [David
+  Hoese]
+
+  Fix area equality to support np.nan, xarray and dask
+- Add dask and xarray to appveyor. [Martin Raspaud]
+- Use numpy's allclose for swathdef equality. [Martin Raspaud]
+- Require a newer numpy for nan equality. [Martin Raspaud]
+- Style cleanup. [Martin Raspaud]
+- Add tests for swath equality. [Martin Raspaud]
+- Style cleanup. [Martin Raspaud]
+- Fix area equality to support xarray and dask. [Martin Raspaud]
+- Merge pull request #108 from pytroll/add-stickler-config. [Martin
+  Raspaud]
+
+  Adding .stickler.yml configuration file
+- Adding .stickler.yml. [stickler-ci]
+
+
 v1.8.2 (2018-03-01)
 -------------------
 - update changelog. [davidh-ssec]
@@ -738,7 +825,6 @@ v1.2.2 (2016-06-21)
   Without this, the compilation of the ewa extension crashes.
 
 
-
 v1.2.1 (2016-06-21)
 -------------------
 - update changelog. [Martin Raspaud]
@@ -894,11 +980,9 @@ v1.2.0 (2016-06-17)
 - Make kd_tree test work on older numpy version. [Martin Raspaud]
 
   VisibleDeprecationWarning is not available in numpy <1.9.
-
 - Adapt to newest pykdtree version. [Martin Raspaud]
 
   The kdtree object's attribute `data_pts` has been renamed to `data`.
-
 - Run tests on python 3.5 in travis also. [Martin Raspaud]
 
 
@@ -910,7 +994,6 @@ v1.1.6 (2016-02-25)
 
   A previous commit was looking for a 'data_pts' attribute in the kdtree
   object, which is available in pykdtree, but not scipy.
-
 - Merge pull request #32 from mitkin/master. [Martin Raspaud]
 
   [tests] Skip deprecation warnings in test_gauss_multi_uncert
@@ -922,7 +1005,6 @@ v1.1.6 (2016-02-25)
   The latest matplotlib (1.5) doesn't support python 2.6 and 3.3. This patch
   chooses the right matplotlib version to install depending on the python
   version at hand.
-
 - Skip deprecation warnings. [Mikhail Itkin]
 
   Catch the rest of the warnings. Check if there is only one, and
@@ -964,7 +1046,6 @@ Other
 - Bugfix to address a numpy DeprecationWarning. [Martin Raspaud]
 
   Numpy won't take non-integer indices soon, so make index an int.
-
 - Merge branch 'release-1.1.3' [Martin Raspaud]
 - Merge branch 'licence-lgpl' into pre-master. [Martin Raspaud]
 - Switch to lgplv3, and bump up version number. [Martin Raspaud]
@@ -1186,7 +1267,7 @@ Other
 - Set svn:mime-type. [StorPipfugl]
 - Corrected doc errors. [StorPipfugl]
 - Removed dist dir. [StorPipfugl]
--  [StorPipfugl]
+- No commit message. [StorPipfugl]
 - Updated documentation. New release. [StorPipfugl]
 - Started updating docstrings. [StorPipfugl]
 - Restructured API. [StorPipfugl]
@@ -1199,8 +1280,9 @@ Other
 - Removed unneeded function. [StorPipfugl]
 - Mime types set. [StorPipfugl]
 - Mime types set. [StorPipfugl]
--  [StorPipfugl]
+- No commit message. [StorPipfugl]
 - Moved to Google Code under GPLv3 license. [StorPipfugl]
 - moved to Google Code. [StorPipfugl]
+
 
 

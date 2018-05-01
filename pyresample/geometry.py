@@ -17,8 +17,8 @@
 # FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
 # details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with this program.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Classes for geometry operations"""
 
@@ -90,6 +90,13 @@ class BaseDefinition(object):
         self.lons = lons
         self.ndim = None
         self.cartesian_coords = None
+        self.hash = None
+
+    def __hash__(self):
+        """Compute the hash of this object."""
+        if self.hash is None:
+            self.hash = int(self.update_hash().hexdigest(), 16)
+        return self.hash
 
     def __eq__(self, other):
         """Test for approximate equality"""
@@ -491,22 +498,23 @@ class SwathDefinition(CoordinateDefinition):
         elif lons.ndim > 2:
             raise ValueError('Only 1 and 2 dimensional swaths are allowed')
 
-        self.hash = None
-
     def __hash__(self):
         """Compute the hash of this object."""
         if self.hash is None:
-            hasher = hashlib.sha1()
-            hasher.update(get_array_hashable(self.lons))
-            hasher.update(get_array_hashable(self.lats))
-            try:
-                if self.lons.mask is not np.bool_(False):
-                    hasher.update(get_array_hashable(self.lons.mask))
-            except AttributeError:
-                pass
-            self.hash = int(hasher.hexdigest(), 16)
-
+            self.hash = int(self.update_hash().hexdigest(), 16)
         return self.hash
+
+    def update_hash(self, the_hash=None):
+        if the_hash is None:
+            the_hash = hashlib.sha1()
+        the_hash.update(get_array_hashable(self.lons))
+        the_hash.update(get_array_hashable(self.lats))
+        try:
+            if self.lons.mask is not np.bool_(False):
+                the_hash.update(get_array_hashable(self.lons.mask))
+        except AttributeError:
+            pass
+        return the_hash
 
     def get_lonlats_dask(self, chunks=CHUNK_SIZE):
         """Get the lon lats as a single dask array."""
@@ -531,14 +539,32 @@ class SwathDefinition(CoordinateDefinition):
 
         proj_dict2points = {'proj': 'omerc', 'lat_0': lat, 'ellps': ellipsoid,
                             'lat_1': lat1, 'lon_1': lon1,
-                            'lat_2': lat2, 'lon_2': lon2}
+                            'lat_2': lat2, 'lon_2': lon2, 'no_rot': True}
 
+        # return proj_dict2points
+        # We need to compute alpha-based omerc for geotiff support
         lonc, lat0 = Proj(**proj_dict2points)(0, 0, inverse=True)
+        az1, az2, dist = Geod(**proj_dict2points).inv(lonc, lat0, lon2, lat2)
+        azimuth = az1
         az1, az2, dist = Geod(**proj_dict2points).inv(lonc, lat0, lon1, lat1)
-        del az2, dist
-        return {'proj': 'omerc', 'alpha': float(az1),
-                'lat_0': float(lat0),  'lonc': float(lonc),
-                'no_rot': True, 'ellps': ellipsoid}
+        if abs(az1 - azimuth) > 1:
+            if abs(az2 - azimuth) > 1:
+                logger.warning("Can't find appropriate azimuth.")
+            else:
+                azimuth += az2
+                azimuth /= 2
+        else:
+            azimuth += az1
+            azimuth /= 2
+
+        if abs(azimuth) > 90:
+            azimuth = 180 + azimuth
+
+        prj_params = {'proj': 'omerc', 'alpha': float(azimuth),
+                      'lat_0': float(lat0),  'lonc': float(lonc),
+                      'no_rot': True, 'ellps': ellipsoid}
+
+        return prj_params
 
     def _compute_generic_parameters(self, projection, ellipsoid):
         """Compute the projection bb parameters for most projections."""
@@ -690,7 +716,10 @@ class DynamicAreaDefinition(object):
             except (TypeError, ValueError):
                 lons, lats = lonslats.get_lonlats()
             xarr, yarr = proj4(np.asarray(lons), np.asarray(lats))
-            corners = [np.min(xarr), np.min(yarr), np.max(xarr), np.max(yarr)]
+            xarr[xarr > 9e29] = np.nan
+            yarr[yarr > 9e29] = np.nan
+            corners = [np.nanmin(xarr), np.nanmin(yarr),
+                       np.nanmax(xarr), np.nanmax(yarr)]
 
             domain = self.compute_domain(corners, resolution, size)
             self.area_extent, self.x_size, self.y_size = domain
@@ -698,6 +727,13 @@ class DynamicAreaDefinition(object):
         return AreaDefinition(self.area_id, self.description, '',
                               self.proj_dict, self.x_size, self.y_size,
                               self.area_extent, self.rotation)
+
+
+def invproj(data_x, data_y, proj_dict):
+    """Perform inverse projection."""
+    # XXX: does pyproj copy arrays? What can we do so it doesn't?
+    target_proj = Proj(**proj_dict)
+    return np.dstack(target_proj(data_x, data_y, inverse=True))
 
 
 class AreaDefinition(BaseDefinition):
@@ -833,6 +869,12 @@ class AreaDefinition(BaseDefinition):
 
         self.dtype = dtype
 
+    def __hash__(self):
+        """Compute the hash of this object."""
+        if self.hash is None:
+            self.hash = int(self.update_hash().hexdigest(), 16)
+        return self.hash
+
     @property
     def proj_str(self):
         return utils.proj4_dict_to_str(self.proj_dict, sort=True)
@@ -855,6 +897,17 @@ class AreaDefinition(BaseDefinition):
                 'Area extent: {6}').format(self.area_id, self.name, third_line,
                                            proj_str, self.x_size, self.y_size,
                                            self.area_extent)
+
+    __repr__ = __str__
+
+    def to_cartopy_crs(self):
+        from pyresample._cartopy import from_proj
+        bounds = (self.area_extent[0],
+                  self.area_extent[2],
+                  self.area_extent[1],
+                  self.area_extent[3])
+        crs = from_proj(self.proj_str, bounds=bounds)
+        return crs
 
     def create_areas_def(self):
         to_dump = OrderedDict()
@@ -892,8 +945,6 @@ class AreaDefinition(BaseDefinition):
                                   area_extent=self.area_extent)
         return area_def_str
 
-    __repr__ = __str__
-
     def __eq__(self, other):
         """Test for equality"""
 
@@ -909,12 +960,14 @@ class AreaDefinition(BaseDefinition):
 
         return not self.__eq__(other)
 
-    def __hash__(self):
-        return hash((
-            self.proj_str,
-            self.shape,
-            self.area_extent
-        ))
+    def update_hash(self, the_hash=None):
+        """Update a hash, or return a new one if needed."""
+        if the_hash is None:
+            the_hash = hashlib.sha1()
+        the_hash.update(self.proj_str.encode('utf-8'))
+        the_hash.update(np.array(self.shape))
+        the_hash.update(np.array(self.area_extent))
+        return the_hash
 
     def colrow2lonlat(self, cols, rows):
         """
@@ -1256,15 +1309,9 @@ class AreaDefinition(BaseDefinition):
         dtype = dtype or self.dtype
         target_x, target_y = self.get_proj_coords_dask(chunks, dtype)
 
-        target_proj = Proj(**self.proj_dict)
-
-        def invproj(data1, data2):
-            # XXX: does pyproj copy arrays? What can we do so it doesn't?
-            return np.dstack(target_proj(data1, data2, inverse=True))
-
         res = map_blocks(invproj, target_x, target_y,
                          chunks=(target_x.chunks[0], target_x.chunks[1], 2),
-                         new_axis=[2])
+                         new_axis=[2], proj_dict=self.proj_dict)
 
         return res[:, :, 0], res[:, :, 1]
 
