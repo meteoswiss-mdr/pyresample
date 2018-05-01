@@ -1025,7 +1025,9 @@ class AreaDefinition(BaseDefinition):
                      self.area_extent[3]) / float(self.y_size)
 
         x__ = (xm - upl_x) / xscale
-        y__ = (ym - upl_y) / yscale    # old version is times (-1) #???# (upl_y - ym_) / yscale #???#
+        #y__ = (ym - upl_y) / yscale    # this is pytroll/develop version,
+                                        # my old version is times (-1) #???# (upl_y - ym_) / yscale #???# Ulrich Hamann hau
+        y__ = (upl_y - ym) / yscale     # this is the old version #???# Ulrich Hamann hau -> now mpop/satin/swisslightning works again
 
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
             mask = (((x__ < 0) | (x__ > self.x_size)) |
