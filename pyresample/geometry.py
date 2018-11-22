@@ -1003,14 +1003,10 @@ class AreaDefinition(BaseDefinition):
         ValueError is raised if the return point is outside the area domain. If
         lon,lat is a tuple of sequences of longitudes and latitudes, a tuple of
         masked arrays are returned.
-
         :Input:
-
         lon : point or sequence (list or array) of longitudes
         lat : point or sequence (list or array) of latitudes
-
         :Returns:
-
         (x, y) : tuple of integer points/arrays
         """
 
@@ -1033,31 +1029,10 @@ class AreaDefinition(BaseDefinition):
         pobj = Proj(self.proj_str)
         xm_, ym_ = pobj(lon, lat)
 
-        x__ = (xm_ - upl_x) / xscale
-        y__ = (upl_y - ym_) / yscale
+        return self.get_xy_from_proj_coords(xm_, ym_, outside_error=outside_error, return_int=return_int)
 
-        if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
-            mask = (((x__ < 0) | (x__ > self.x_size)) |
-                    ((y__ < 0) | (y__ > self.y_size)))
-            if return_int:
-                rtype='int'
-            else:
-                rtype='float'
-            return (np.ma.masked_array(x__.astype(rtype), mask=mask,
-                                       fill_value=-1),
-                    np.ma.masked_array(y__.astype(rtype), mask=mask,
-                                       fill_value=-1))
-        else:
-            if ((x__ < 0 or x__ > self.x_size) or
-                (y__ < 0 or y__ > self.y_size)) and outside_error:
-                raise ValueError('Point outside area:( %f %f)' % (x__, y__))
-
-            if return_int:
-                return int(x__), int(y__)
-            else:
-                return x__, y__
-
-    def get_xy_from_proj_coords(self, xm_, ym_, outside_error=True, return_int=True):
+            
+    def get_xy_from_proj_coords(self, xm, ym, outside_error=True, return_int=True):
         """Retrieve closest x and y coordinates (column, row indices) for a 
         location specified with projection coordinates (xm_,ym_) in meters. 
         A ValueError is raised, if the return point is outside the area domain. If
