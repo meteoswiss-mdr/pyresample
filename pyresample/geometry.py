@@ -1031,28 +1031,30 @@ class AreaDefinition(BaseDefinition):
 
         return self.get_xy_from_proj_coords(xm_, ym_, outside_error=outside_error, return_int=return_int)
 
-            
+    
     def get_xy_from_proj_coords(self, xm, ym, outside_error=True, return_int=True):
-        """Retrieve closest x and y coordinates (column, row indices) for a 
-        location specified with projection coordinates (xm_,ym_) in meters. 
-        A ValueError is raised, if the return point is outside the area domain. If
-        xm_,ym_ is a tuple of sequences of projection coordinates, a tuple of
-        masked arrays are returned.
+        """Retrieve closest x and y grid cell index (column, row indices) for a 
+        location specified with projection coordinates (xm,ym) in meters. 
+        A ValueError is raised, if the return point is outside the area domain. 
         If xm, ym is a tuple of sequences of projection coordinates, a tuple
         of masked arrays are returned.
-
+        A ValueError is raised, if the return point is outside the area domain.
         Args:
             xm (list or array): point or sequence of x-coordinates in
                                  meters (map projection)
             ym (list or array): point or sequence of y-coordinates in
                                  meters (map projection)
-
+        Opt args:
+            outside_error: default True
+                  if set to False, program will continue, even if coordinates 
+                  outside of the define projection will be returned
+            return_int: default True
+                  if set to False, the coordinates will be returned as float
+                  including fractional parts of indices
         Returns:
             x, y : column and row grid cell indexes as 2 scalars or arrays
-
         Raises:
             ValueError: if the return point is outside the area domain
-
         """
 
         if isinstance(xm, list):
