@@ -8,12 +8,12 @@ Resampling can be done using nearest neighbour method, Guassian weighting, weigh
 
 .. versionchanged:: 1.8.0
 
-    `SwathDefinition` no longer checks the validity of the provided longitude
+    :class:`~pyresample.geometry.SwathDefinition` no longer checks the validity of the provided longitude
     and latitude coordinates to improve performance. Longitude arrays are
     expected to be between -180 and 180 degrees, latitude -90 to 90 degrees.
     This also applies to all geometry definitions that are provided longitude
     and latitude arrays on initialization. Use
-    `pyresample.utils.check_and_wrap` to preprocess your arrays.
+    :func:`~pyresample.utils.check_and_wrap` to preprocess your arrays.
 
 pyresample.image
 ----------------
@@ -245,11 +245,6 @@ grid point (the nearest neighbour). Also note **distance_array** is not a requir
 Segmented resampling
 ********************
 Whenever a resampling function takes the keyword argument **segments** the number of segments to split the resampling process in can be specified. This affects the memory footprint of pyresample. If the value of **segments** is left to default pyresample will estimate the number of segments to use. 
-    
-Speedup using pykdtree
-**********************
-
-pykdtree can be used instead of scipy to gain significant speedup for large datasets. See :ref:`multi`. 
 
 pyresample.bilinear
 -------------------

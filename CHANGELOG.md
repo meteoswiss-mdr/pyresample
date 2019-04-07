@@ -1,3 +1,106 @@
+## Version 1.12.0 (2019/04/06)
+
+### Issues Closed
+
+* [Issue 178](https://github.com/pytroll/pyresample/issues/178) - Can't install pyresample on OSX Mojave
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 177](https://github.com/pytroll/pyresample/pull/177) - Fix dynamic omerc parameter computation to survive nans
+
+#### Features added
+
+* [PR 182](https://github.com/pytroll/pyresample/pull/182) - Implement striding and aggregation for Swath- and AreaDefinitions
+
+In this release 2 pull requests were closed.
+
+
+## Version 1.11.2 (2019/03/18)
+
+### Pull Requests Merged
+
+#### Documentation changes
+
+* [PR 176](https://github.com/pytroll/pyresample/pull/176) - Fix typos in README and index page
+
+In this release 1 pull request was closed.
+
+## Version 1.11.1 (2019/03/18)
+
+### Issues Closed
+
+* [Issue 165](https://github.com/pytroll/pyresample/issues/165) - Update use of dask `atop` to `blockwise`
+* [Issue 172](https://github.com/pytroll/pyresample/issues/172) - Missing metadata on PyPI ([PR 173](https://github.com/pytroll/pyresample/pull/173))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 175](https://github.com/pytroll/pyresample/pull/175) - Fix dask.blockwise backwards compatibility with dask.atop
+
+In this release 1 pull request was closed.
+
+
+## Version 1.11.0 (2019/03/15)
+
+### Issues Closed
+
+* [Issue 160](https://github.com/pytroll/pyresample/issues/160) - No coastlines in cartopy if area is flipped ([PR 161](https://github.com/pytroll/pyresample/pull/161))
+* [Issue 136](https://github.com/pytroll/pyresample/issues/136) - Update documentation to not reference scipy kdtree ([PR 155](https://github.com/pytroll/pyresample/pull/155))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 170](https://github.com/pytroll/pyresample/pull/170) - Allow create_area_def to work with incomplete proj dicts to create DynamicAreas
+* [PR 167](https://github.com/pytroll/pyresample/pull/167) - Fix yaml area loading when projection is latlong (units degrees)
+
+#### Features added
+
+* [PR 164](https://github.com/pytroll/pyresample/pull/164) - Delete unused requirements.txt file
+* [PR 156](https://github.com/pytroll/pyresample/pull/156) - Refactor pyresample.utils in to separate modules
+* [PR 150](https://github.com/pytroll/pyresample/pull/150) - Switch to versioneer
+* [PR 145](https://github.com/pytroll/pyresample/pull/145) - Refactor and deprecate geometry "*_dask" methods
+* [PR 138](https://github.com/pytroll/pyresample/pull/138) - Add `create_area_def` utility method and refactor AreaDefinition arguments
+
+#### Documentation changes
+
+* [PR 155](https://github.com/pytroll/pyresample/pull/155) - Update installation instructions to match current best practices ([136](https://github.com/pytroll/pyresample/issues/136))
+
+In this release 8 pull requests were closed.
+
+
+## Version 1.10.3 (2018/11/23)
+
+### Issues Closed
+
+* [Issue 92](https://github.com/pytroll/pyresample/issues/92) - Add utility function for converting geotiffs to area definitions ([PR 143](https://github.com/pytroll/pyresample/pull/143))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 147](https://github.com/pytroll/pyresample/pull/147) - Fix dtype preservation for kdtree resampling
+* [PR 144](https://github.com/pytroll/pyresample/pull/144) - Non-contiguous area definitions are now not concatenable ([491](https://github.com/pytroll/satpy/issues/491))
+
+#### Features added
+
+* [PR 143](https://github.com/pytroll/pyresample/pull/143) - get_area_def_from_raster ([92](https://github.com/pytroll/pyresample/issues/92))
+* [PR 142](https://github.com/pytroll/pyresample/pull/142) - Add converter from def to yaml
+
+In this release 4 pull requests were closed.
+
+
 ## Version 1.10.2 (2018/10/01)
 
 ### Issues Closed
