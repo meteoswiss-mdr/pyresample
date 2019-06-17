@@ -1,3 +1,51 @@
+## Version 1.12.3 (2019/05/17)
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 193](https://github.com/pytroll/pyresample/pull/193) - Fix striding slicing in AreaDefinition
+
+In this release 1 pull request was closed.
+
+
+## Version 1.12.2 (2019/05/10)
+
+### Issues Closed
+
+* [Issue 187](https://github.com/pytroll/pyresample/issues/187) - Numerous `RuntimeWarning`s when resampling
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 190](https://github.com/pytroll/pyresample/pull/190) - Fix aggregate method using non-serializable internal function
+* [PR 189](https://github.com/pytroll/pyresample/pull/189) - Fix dask race condition in KDTree resampling
+
+#### Features added
+
+* [PR 183](https://github.com/pytroll/pyresample/pull/183) - Fix bb computation to generate areas with equal h and v resolutions
+
+In this release 3 pull requests were closed.
+
+
+## Version 1.12.1 (2019/04/24)
+
+### Pull Requests Merged
+
+#### Bugs fixed
+
+* [PR 186](https://github.com/pytroll/pyresample/pull/186) - Fix support for pyproj-2 EPSG syntax
+
+#### Documentation changes
+
+* [PR 185](https://github.com/pytroll/pyresample/pull/185) - Fix argument order in get_area_def doc
+
+In this release 2 pull requests were closed.
+
+
 ## Version 1.12.0 (2019/04/06)
 
 ### Issues Closed
@@ -15,8 +63,9 @@ In this release 1 issue was closed.
 #### Features added
 
 * [PR 182](https://github.com/pytroll/pyresample/pull/182) - Implement striding and aggregation for Swath- and AreaDefinitions
+* [PR 180](https://github.com/pytroll/pyresample/pull/180) - Remove radians from create_area_def and allow compatibility with pyproj-2.0+
 
-In this release 2 pull requests were closed.
+In this release 3 pull requests were closed.
 
 
 ## Version 1.11.2 (2019/03/18)
