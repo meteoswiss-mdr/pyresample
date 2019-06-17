@@ -1310,8 +1310,8 @@ class AreaDefinition(BaseDefinition):
         """
         return self.get_xy_from_lonlat(lons, lats)
 
-
     def get_xy_from_lonlat(self, lon, lat, outside_error=True, return_int=True):
+
         """Retrieve closest x and y coordinates (column, row indices) for the
         specified geolocation (lon,lat) if inside area. If lon,lat is a point a
         ValueError is raised if the return point is outside the area domain. If
@@ -1343,7 +1343,6 @@ class AreaDefinition(BaseDefinition):
 
         return self.get_xy_from_proj_coords(xm_, ym_, outside_error=outside_error, return_int=return_int)
 
-    
     def get_xy_from_proj_coords(self, xm, ym, outside_error=True, return_int=True):
         """Retrieve closest x and y grid cell index (column, row indices) for a 
         location specified with projection coordinates (xm,ym) in meters. 
@@ -1386,6 +1385,7 @@ class AreaDefinition(BaseDefinition):
 
         upl_x = self.area_extent[0]
         upl_y = self.area_extent[3]
+
         xscale = (self.area_extent[2] -
                   self.area_extent[0]) / float(self.width)
         # because rows direction is the opposite of y's
@@ -1394,7 +1394,11 @@ class AreaDefinition(BaseDefinition):
 
         x__ = (xm - upl_x) / xscale
         y__ = (ym - upl_y) / yscale
+        #y__ = (ym - upl_y) / yscale    # this is pytroll/develop version,
+                                        # my old version is times (-1) #???# (upl_y - ym_) / yscale #???# Ulrich Hamann hau
+        y__ = (upl_y - ym) / yscale     # this is the old version #???# Ulrich Hamann hau -> now mpop/satin/swisslightning works again
 
+        
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
             mask = (((x__ < 0) | (x__ >= self.width)) |
                     ((y__ < 0) | (y__ >= self.height)))
@@ -1403,9 +1407,11 @@ class AreaDefinition(BaseDefinition):
             else:
                 rtype='float'
             return (np.ma.masked_array(x__.astype(rtype), mask=mask,
-                                       fill_value=-1, copy=False),
+                                       fill_value=-1),
+                                       #fill_value=-1, copy=False),
                     np.ma.masked_array(y__.astype(rtype), mask=mask,
-                                       fill_value=-1, copy=False))
+                                       fill_value=-1))
+                                       #fill_value=-1, copy=False))
         else:
             if ((x__ < 0 or x__ >= self.width) or
                 (y__ < 0 or y__ >= self.height)) and outside_error:
