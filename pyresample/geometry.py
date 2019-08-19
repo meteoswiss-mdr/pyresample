@@ -1424,7 +1424,7 @@ class AreaDefinition(BaseDefinition):
         y__ = (ym - upl_y) / yscale
         #y__ = (ym - upl_y) / yscale    # this is pytroll/develop version,
                                         # my old version is times (-1) #???# (upl_y - ym_) / yscale #???# Ulrich Hamann hau
-        y__ = (upl_y - ym) / yscale     # this is the old version #???# Ulrich Hamann hau -> now mpop/satin/swisslightning works again
+        #y__ = (upl_y - ym) / yscale    # this is the old version #???# Ulrich Hamann hau -> now mpop/satin/swisslightning works again
 
         
         if isinstance(x__, np.ndarray) and isinstance(y__, np.ndarray):
