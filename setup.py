@@ -17,6 +17,7 @@
 
 # workaround python bug: http://bugs.python.org/issue15881#msg170215
 # remove when python 2 support is dropped
+"""The setup module."""
 import multiprocessing  # noqa: F401
 import versioneer
 import os
@@ -26,22 +27,14 @@ from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
 requirements = ['setuptools>=3.2', 'pyproj>=1.9.5.1', 'configobj',
-                'pykdtree>=1.3.1', 'pyyaml', 'six']
+                'pykdtree>=1.3.1', 'pyyaml', 'numpy>=1.10.0']
 extras_require = {'numexpr': ['numexpr'],
                   'quicklook': ['matplotlib', 'cartopy', 'pillow'],
                   'rasterio': ['rasterio'],
                   'dask': ['dask>=0.16.1']}
 
-if sys.version_info.major > 2:
-    setup_requires = ['numpy>=1.10.0']
-    requirements.append('numpy>=1.10.0')
-else:
-    setup_requires = ['numpy>=1.10.0,<1.17.0']
-    requirements.append('numpy>=1.10.0,<1.17.0')
-
+setup_requires = ['numpy>=1.10.0']
 test_requires = ['rasterio', 'dask', 'xarray', 'cartopy', 'pillow', 'matplotlib', 'scipy']
-if sys.version_info < (3, 3):
-    test_requires.append('mock')
 
 if sys.platform.startswith("win"):
     extra_compile_args = []
@@ -54,7 +47,9 @@ extensions = [
     Extension("pyresample.ewa._fornav", sources=["pyresample/ewa/_fornav.pyx",
                                                  "pyresample/ewa/_fornav_templates.cpp"],
               language="c++", extra_compile_args=extra_compile_args,
-              depends=["pyresample/ewa/_fornav_templates.h"])
+              depends=["pyresample/ewa/_fornav_templates.h"]),
+    Extension("pyresample.gradient._gradient_search", sources=["pyresample/gradient/_gradient_search.pyx"],
+              extra_compile_args=extra_compile_args),
 ]
 
 try:
@@ -64,6 +59,7 @@ except ImportError:
 
 
 def set_builtin(name, value):
+    """Set builtin."""
     if isinstance(__builtins__, dict):
         __builtins__[name] = value
     else:
@@ -84,6 +80,7 @@ class build_ext(_build_ext):
     """
 
     def finalize_options(self):
+        """Finalize options."""
         versioneer_build_ext.finalize_options(self)
         # Prevent numpy from thinking it is still in its setup process:
         set_builtin('__NUMPY_SETUP__', False)
@@ -125,7 +122,7 @@ if __name__ == "__main__":
           author_email='t.lavergne@met.no',
           package_dir={'pyresample': 'pyresample'},
           packages=find_packages(),
-          python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+          python_requires='>=3.4',
           setup_requires=setup_requires,
           install_requires=requirements,
           extras_require=extras_require,

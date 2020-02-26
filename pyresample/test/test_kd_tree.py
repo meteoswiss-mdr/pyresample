@@ -1,18 +1,11 @@
-from __future__ import with_statement
-
 import os
-import sys
-import six
-
 import numpy as np
 
 from pyresample import geometry, kd_tree, utils
 from pyresample.test.utils import catch_warnings
 
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
+from unittest import mock
 
 
 class Test(unittest.TestCase):
@@ -414,8 +407,22 @@ class Test(unittest.TestCase):
         with catch_warnings(UserWarning) as w:
             res = kd_tree.resample_custom(swath_def, data.ravel(),
                                           self.area_def, 50000, wf, segments=1)
-            self.assertFalse(len(w) != 1)
-            self.assertFalse(('Possible more' not in str(w[0].message)))
+            # PyProj proj/CRS and "more than 8 neighbours" are warned about
+            self.assertFalse(len(w) > 2)
+            neighbour_warn = False
+            for warn in w:
+                if 'Possible more' in str(warn.message):
+                    neighbour_warn = True
+                    break
+            self.assertTrue(neighbour_warn)
+            if len(w) == 2:
+                proj_crs_warn = False
+                for warn in w:
+                    if 'important projection information' in str(warn.message):
+                        proj_crs_warn = True
+                        break
+                self.assertTrue(proj_crs_warn)
+
         cross_sum = res.sum()
         expected = 4872.8100347930776
         self.assertAlmostEqual(cross_sum, expected)
@@ -873,6 +880,47 @@ class TestXArrayResamplerNN(unittest.TestCase):
         expected = 27706753.0
         self.assertEqual(cross_sum, expected)
 
+    def test_nearest_area_2d_to_area_1n_no_roi(self):
+        """Test 2D area definition to 2D area definition; 1 neighbor, no radius of influence."""
+        from pyresample.kd_tree import XArrayResamplerNN
+        import xarray as xr
+        import dask.array as da
+        data = self.data_2d
+        resampler = XArrayResamplerNN(self.src_area_2d, self.area_def,
+                                      neighbours=1)
+        ninfo = resampler.get_neighbour_info()
+        for val in ninfo[:3]:
+            # vii, ia, voi
+            self.assertIsInstance(val, da.Array)
+        self.assertRaises(AssertionError,
+                          resampler.get_sample_from_neighbour_info, data)
+
+        # rename data dimensions to match the expected area dimensions
+        data = data.rename({'my_dim_y': 'y', 'my_dim_x': 'x'})
+        res = resampler.get_sample_from_neighbour_info(data)
+        self.assertIsInstance(res, xr.DataArray)
+        self.assertIsInstance(res.data, da.Array)
+        res = res.values
+        cross_sum = np.nansum(res)
+        expected = 32114793.0
+        self.assertEqual(cross_sum, expected)
+
+        # pretend the resolutions can't be determined
+        with mock.patch.object(self.src_area_2d, 'geocentric_resolution') as sgr, \
+                mock.patch.object(self.area_def, 'geocentric_resolution') as dgr:
+            sgr.side_effect = RuntimeError
+            dgr.side_effect = RuntimeError
+            resampler = XArrayResamplerNN(self.src_area_2d, self.area_def,
+                                          neighbours=1)
+            resampler.get_neighbour_info()
+            res = resampler.get_sample_from_neighbour_info(data)
+            self.assertIsInstance(res, xr.DataArray)
+            self.assertIsInstance(res.data, da.Array)
+            res = res.values
+            cross_sum = np.nansum(res)
+            expected = 1855928.0
+            self.assertEqual(cross_sum, expected)
+
     def test_nearest_area_2d_to_area_1n_3d_data(self):
         """Test 2D area definition to 2D area definition; 1 neighbor, 3d data."""
         from pyresample.kd_tree import XArrayResamplerNN
@@ -894,7 +942,7 @@ class TestXArrayResamplerNN(unittest.TestCase):
         res = resampler.get_sample_from_neighbour_info(data)
         self.assertIsInstance(res, xr.DataArray)
         self.assertIsInstance(res.data, da.Array)
-        six.assertCountEqual(self, res.coords['bands'], ['r', 'g', 'b'])
+        self.assertCountEqual(res.coords['bands'], ['r', 'g', 'b'])
         res = res.values
         cross_sum = np.nansum(res)
         expected = 83120259.0
@@ -920,17 +968,3 @@ class TestXArrayResamplerNN(unittest.TestCase):
         # actual = res.values
         # expected = TODO
         # np.testing.assert_allclose(actual, expected)
-
-
-def suite():
-    """The test suite."""
-    loader = unittest.TestLoader()
-    mysuite = unittest.TestSuite()
-    mysuite.addTest(loader.loadTestsFromTestCase(Test))
-    mysuite.addTest(loader.loadTestsFromTestCase(TestXArrayResamplerNN))
-
-    return mysuite
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -475,6 +475,68 @@ class CoordinateDefinition(BaseDefinition):
                                                     str(self.lons),
                                                     str(self.lats))
 
+    def geocentric_resolution(self, ellps='WGS84', radius=None, nadir_factor=2):
+        """Calculate maximum geocentric pixel resolution.
+
+        If `lons` is a :class:`xarray.DataArray` object with a `resolution`
+        attribute, this will be used instead of loading the longitude and
+        latitude data. In this case the resolution attribute is assumed to
+        mean the nadir resolution of a swath and will be multiplied by the
+        `nadir_factor` to adjust for increases in the spatial resolution
+        towards the limb of the swath.
+
+        Args:
+            ellps (str): PROJ Ellipsoid for the Cartographic projection
+                used as the target geocentric coordinate reference system.
+                Default: 'WGS84'. Ignored if `radius` is provided.
+            radius (float): Spherical radius of the Earth to use instead of
+                the definitions in `ellps`.
+            nadir_factor (int): Number to multiply the nadir resolution
+                attribute by to reflect pixel size on the limb of the swath.
+
+        Returns: Estimated maximum pixel size in meters on a geocentric
+            coordinate system (X, Y, Z) representing the Earth.
+
+        Raises: RuntimeError if a simple search for valid longitude/latitude
+            data points found no valid data points.
+
+        """
+        if hasattr(self.lons, 'attrs') and \
+                self.lons.attrs.get('resolution') is not None:
+            return self.lons.attrs['resolution'] * nadir_factor
+        if self.ndim == 1:
+            raise RuntimeError("Can't confidently determine geocentric "
+                               "resolution for 1D swath.")
+        from pyproj import transform
+        rows = self.shape[0]
+        start_row = rows // 2  # middle row
+        src = Proj('+proj=latlong +datum=WGS84')
+        if radius:
+            dst = Proj("+proj=cart +a={} +b={}".format(radius, radius))
+        else:
+            dst = Proj("+proj=cart +ellps={}".format(ellps))
+        # simply take the first two columns of the middle of the swath
+        lons = self.lons[start_row: start_row + 1, :2]
+        lats = self.lats[start_row: start_row + 1, :2]
+        if hasattr(lons.data, 'compute'):
+            # dask arrays, compute them together
+            import dask.array as da
+            lons, lats = da.compute(lons, lats)
+        if hasattr(lons, 'values'):
+            # convert xarray to numpy array
+            lons = lons.values
+            lats = lats.values
+        lons = lons.ravel()
+        lats = lats.ravel()
+        alt = np.zeros_like(lons)
+
+        xyz = np.stack(transform(src, dst, lons, lats, alt), axis=1)
+        dist = np.linalg.norm(xyz[1] - xyz[0])
+        dist = dist[np.isfinite(dist)]
+        if not dist.size:
+            raise RuntimeError("Could not calculate geocentric resolution")
+        return dist[0]
+
 
 class GridDefinition(CoordinateDefinition):
     """Grid defined by lons and lats.
@@ -687,10 +749,11 @@ class SwathDefinition(CoordinateDefinition):
     def compute_bb_proj_params(self, proj_dict):
         """Compute BB projection parameters."""
         projection = proj_dict['proj']
-        ellipsoid = proj_dict.get('ellps', 'WGS84')
         if projection == 'omerc':
+            ellipsoid = proj_dict.get('ellps', 'sphere')
             return self._compute_omerc_parameters(ellipsoid)
         else:
+            ellipsoid = proj_dict.get('ellps', 'WGS84')
             new_proj = self._compute_generic_parameters(projection, ellipsoid)
             new_proj.update(proj_dict)
             return new_proj
@@ -765,44 +828,43 @@ class DynamicAreaDefinition(object):
 
     The purpose of this class is to be able to adapt the area extent and shape
     of the area to a given set of longitudes and latitudes, such that e.g.
-    polar satellite granules can be resampled optimaly to a give projection.
+    polar satellite granules can be resampled optimally to a given projection.
+
+    Parameters
+    ----------
+    area_id:
+        The name of the area.
+    description:
+        The description of the area.
+    projection:
+        The dictionary or string of projection parameters. Doesn't have to
+        be complete. If not complete, ``proj_info`` must be provided to
+        ``freeze`` to "fill in" any missing parameters.
+    width:
+        x dimension in number of pixels, aka number of grid columns
+    height:
+        y dimension in number of pixels, aka number of grid rows
+    shape:
+        Corresponding array shape as (height, width)
+    area_extent:
+        The area extent of the area.
+    pixel_size_x:
+        Pixel width in projection units
+    pixel_size_y:
+        Pixel height in projection units
+    resolution:
+        Resolution of the resulting area as (pixel_size_x, pixel_size_y) or a scalar if pixel_size_x == pixel_size_y.
+    optimize_projection:
+        Whether the projection parameters have to be optimized.
+    rotation:
+        Rotation in degrees (negative is cw)
+
     """
 
     def __init__(self, area_id=None, description=None, projection=None,
                  width=None, height=None, area_extent=None,
                  resolution=None, optimize_projection=False, rotation=None):
-        """Initialize the DynamicAreaDefinition.
-
-        Attributes
-        ----------
-        area_id:
-          The name of the area.
-        description:
-          The description of the area.
-        projection:
-          The dictionary or string of projection parameters. Doesn't have to
-          be complete. If not complete, ``proj_info`` must be provided to
-          ``freeze`` to "fill in" any missing parameters.
-        width:
-            x dimension in number of pixels, aka number of grid columns
-        height:
-            y dimension in number of pixels, aka number of grid rows
-        shape:
-            Corresponding array shape as (height, width)
-        area_extent:
-          The area extent of the area.
-        pixel_size_x:
-            Pixel width in projection units
-        pixel_size_y:
-            Pixel height in projection units
-        resolution:
-          Resolution of the resulting area as (pixel_size_x, pixel_size_y) or a scalar if pixel_size_x == pixel_size_y.
-        optimize_projection:
-          Whether the projection parameters have to be optimized.
-        rotation:
-          Rotation in degrees (negative is cw)
-
-        """
+        """Initialize the DynamicAreaDefinition."""
         self.area_id = area_id
         self.description = description
         self.width = width
@@ -823,7 +885,6 @@ class DynamicAreaDefinition(object):
 
     def _get_proj_dict(self):
         projection = self._projection
-
         if CRS is not None:
             try:
                 crs = CRS(projection)
@@ -1838,7 +1899,7 @@ class AreaDefinition(BaseDefinition):
             from dask.array import map_blocks
             res = map_blocks(invproj, target_x, target_y,
                              chunks=(target_x.chunks[0], target_x.chunks[1], 2),
-                             new_axis=[2], proj_dict=proj_def)
+                             new_axis=[2], proj_dict=proj_def).astype(dtype)
             return res[:, :, 0], res[:, :, 1]
 
         if nprocs > 1:
@@ -1865,7 +1926,7 @@ class AreaDefinition(BaseDefinition):
                       "instead.", DeprecationWarning)
         return proj4_dict_to_str(self.proj_dict)
 
-    def get_area_slices(self, area_to_cover):
+    def get_area_slices(self, area_to_cover, shape_divisible_by=None):
         """Compute the slice to read based on an `area_to_cover`."""
         if not isinstance(area_to_cover, AreaDefinition):
             raise NotImplementedError('Only AreaDefinitions can be used')
@@ -1923,8 +1984,15 @@ class AreaDefinition(BaseDefinition):
         x, y = self.get_xy_from_lonlat(np.rad2deg(intersection.lon),
                                        np.rad2deg(intersection.lat))
 
-        return (slice(np.ma.min(x), np.ma.max(x) + 1),
-                slice(np.ma.min(y), np.ma.max(y) + 1))
+        x_slice = slice(np.ma.min(x), np.ma.max(x) + 1)
+        y_slice = slice(np.ma.min(y), np.ma.max(y) + 1)
+        if shape_divisible_by is not None:
+            x_slice = _make_slice_divisible(x_slice, self.width,
+                                            factor=shape_divisible_by)
+            y_slice = _make_slice_divisible(y_slice, self.height,
+                                            factor=shape_divisible_by)
+
+        return (x_slice, y_slice)
 
     def crop_around(self, other_area):
         """Crop this area around `other_area`."""
@@ -1957,6 +2025,50 @@ class AreaDefinition(BaseDefinition):
         new_area.crop_offset = (self.crop_offset[0] + yslice.start,
                                 self.crop_offset[1] + xslice.start)
         return new_area
+
+    def geocentric_resolution(self, ellps='WGS84', radius=None):
+        """Find best estimate for overall geocentric resolution."""
+        from pyproj import transform
+        rows, cols = self.shape
+        mid_row = rows // 2
+        mid_col = cols // 2
+        x, y = self.get_proj_vectors()
+        mid_col_x = np.repeat(x[mid_col], y.size)
+        mid_row_y = np.repeat(y[mid_row], x.size)
+        src = Proj(getattr(self, 'crs', self.proj_dict))
+        if radius:
+            dst = Proj("+proj=cart +a={} +b={}".format(radius, radius))
+        else:
+            dst = Proj("+proj=cart +ellps={}".format(ellps))
+        alt_x = np.zeros(x.size)
+        alt_y = np.zeros(y.size)
+        hor_xyz = np.stack(transform(src, dst, x, mid_row_y, alt_x), axis=1)
+        vert_xyz = np.stack(transform(src, dst, mid_col_x, y, alt_y), axis=1)
+        hor_dist = np.linalg.norm(np.diff(hor_xyz, axis=0), axis=1)
+        vert_dist = np.linalg.norm(np.diff(vert_xyz, axis=0), axis=1)
+        dist = np.concatenate((hor_dist, vert_dist))
+        dist = dist[np.isfinite(dist)]
+        if not dist.size:
+            raise RuntimeError("Could not calculate geocentric resolution")
+        # return np.max(dist)  # alternative to histogram
+        # use the average of the largest histogram bin to avoid
+        # outliers and really large values
+        return np.mean(np.histogram_bin_edges(dist)[:2])
+
+
+def _make_slice_divisible(sli, max_size, factor=2):
+    """Make the given slice even in size."""
+    rem = (sli.stop - sli.start) % factor
+    if rem != 0:
+        adj = factor - rem
+        if sli.stop + 1 + rem < max_size:
+            sli = slice(sli.start, sli.stop + adj)
+        elif sli.start > 0:
+            sli = slice(sli.start - adj, sli.stop)
+        else:
+            sli = slice(sli.start, sli.stop - rem)
+
+    return sli
 
 
 def get_geostationary_angle_extent(geos_area):

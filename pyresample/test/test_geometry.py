@@ -1,6 +1,27 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import with_statement
-
+# pyresample, Resampling of remote sensing image data in python
+#
+# Copyright (C) 2010-2016
+#
+# Authors:
+#    Esben S. Nielsen
+#    Thomas Lavergne
+#    Adam Dybbroe
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Test the geometry objects."""
 import random
 import sys
 
@@ -12,23 +33,15 @@ from pyresample.geometry import (IncompatibleAreas,
                                  concatenate_area_defs)
 from pyresample.test.utils import catch_warnings
 
-try:
-    from unittest.mock import MagicMock, patch
-except ImportError:
-    # separate mock package py<3.3
-    from mock import MagicMock, patch
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+from unittest.mock import MagicMock, patch
+import unittest
 
 
 class Test(unittest.TestCase):
-
-    """Unit testing the geometry and geo_filter modules"""
+    """Unit testing the geometry and geo_filter modules."""
 
     def test_lonlat_precomp(self):
+        """Test the lonlat precomputation."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -50,6 +63,7 @@ class Test(unittest.TestCase):
                                msg='lat retrieval from precomputated grid failed')
 
     def test_cartesian(self):
+        """Test getting the cartesian coordinates."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -69,7 +83,7 @@ class Test(unittest.TestCase):
                         msg='Calculation of cartesian coordinates failed')
 
     def test_cartopy_crs(self):
-        """Test conversion from area definition to cartopy crs"""
+        """Test conversion from area definition to cartopy crs."""
         from pyresample import utils
 
         europe = geometry.AreaDefinition(area_id='areaD',
@@ -144,6 +158,7 @@ class Test(unittest.TestCase):
         self.assertTrue(np.allclose(latlong_crs.bounds, [-np.pi, np.pi, -np.pi/2, np.pi/2]))
 
     def test_create_areas_def(self):
+        """Test exporting area defs."""
         from pyresample import utils
         import yaml
 
@@ -198,6 +213,7 @@ class Test(unittest.TestCase):
         self.assertDictEqual(res, expected)
 
     def test_parse_area_file(self):
+        """Test parsing the are file."""
         from pyresample import utils
 
         expected = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)',
@@ -249,6 +265,7 @@ class Test(unittest.TestCase):
             self.assertEqual(area_def, expected)
 
     def test_base_type(self):
+        """Test the base type."""
         lons1 = np.arange(-135., +135, 50.)
         lats = np.ones_like(lons1) * 70.
 
@@ -286,6 +303,7 @@ class Test(unittest.TestCase):
                          (lons2_ints.dtype, lons.dtype,))
 
     def test_area_hash(self):
+        """Test the area hash."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -335,6 +353,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(hash(area_def), int)
 
     def test_get_array_hashable(self):
+        """Test making the array hashable."""
         arr = np.array([1.2, 1.3, 1.4, 1.5])
         if sys.byteorder == 'little':
             # arr.view(np.uint8)
@@ -370,6 +389,7 @@ class Test(unittest.TestCase):
                              xrarr.attrs['hash'])
 
     def test_swath_hash(self):
+        """Test swath hash."""
         lons = np.array([1.2, 1.3, 1.4, 1.5])
         lats = np.array([65.9, 65.86, 65.82, 65.78])
         swath_def = geometry.SwathDefinition(lons, lats)
@@ -417,6 +437,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(hash(swath_def), int)
 
     def test_area_equal(self):
+        """Test areas equality."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -447,6 +468,7 @@ class Test(unittest.TestCase):
             area_def != area_def2, 'area_defs are not equal as expected')
 
     def test_not_area_equal(self):
+        """Test areas inequality."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -479,6 +501,7 @@ class Test(unittest.TestCase):
             area_def == msg_area, 'area_defs are not expected to be equal')
 
     def test_swath_equal_area(self):
+        """Test equality swath area."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -516,6 +539,7 @@ class Test(unittest.TestCase):
             area_def != swath_def, "swath_def and area_def should be equal")
 
     def test_swath_not_equal_area(self):
+        """Test inequality swath area."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -555,6 +579,7 @@ class Test(unittest.TestCase):
             area_def == swath_def, "swath_def and area_def should be different")
 
     def test_grid_filter_valid(self):
+        """Test valid grid filtering."""
         lons = np.array([-170, -30, 30, 170])
         lats = np.array([20, -40, 50, -80])
         swath_def = geometry.SwathDefinition(lons, lats)
@@ -579,6 +604,7 @@ class Test(unittest.TestCase):
             np.array_equal(valid_index, expected), 'Failed to find grid filter')
 
     def test_grid_filter(self):
+        """Test filtering a grid."""
         lons = np.array([-170, -30, 30, 170])
         lats = np.array([20, -40, 50, -80])
         swath_def = geometry.SwathDefinition(lons, lats)
@@ -609,6 +635,7 @@ class Test(unittest.TestCase):
                         'Failed finding grid filtering lon lats')
 
     def test_grid_filter2D(self):
+        """Test filtering a 2D grid."""
         lons = np.array([[-170, -30, 30, 170],
                          [-170, -30, 30, 170]])
         lats = np.array([[20, -40, 50, -80],
@@ -644,6 +671,7 @@ class Test(unittest.TestCase):
                         'Failed finding 2D grid filtering lon lats')
 
     def test_boundary(self):
+        """Test getting the boundary."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -670,6 +698,7 @@ class Test(unittest.TestCase):
                         'Failed to find projection y coords')
 
     def test_area_extent_ll(self):
+        """Test getting the lower left area extent."""
         area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
                                            {'a': '6378144.0',
                                             'b': '6356759.0',
@@ -688,6 +717,7 @@ class Test(unittest.TestCase):
                                'Failed to get lon and lats of area extent')
 
     def test_latlong_area(self):
+        """Test getting lons and lats from an area."""
         area_def = geometry.AreaDefinition('', '', '',
                                            {'proj': 'latlong'},
                                            360, 180,
@@ -697,6 +727,7 @@ class Test(unittest.TestCase):
         self.assertEqual(lats[0, 0], 89.5)
 
     def test_lonlat2colrow(self):
+        """Test lonlat2colrow."""
         from pyresample import utils
         area_id = 'meteosat_0deg'
         area_name = 'Meteosat 0 degree Service'
@@ -733,7 +764,7 @@ class Test(unittest.TestCase):
         self.assertTrue(area.lonlat2colrow(lon, lat) == (1567, 2375))
 
     def test_colrow2lonlat(self):
-
+        """Test colrow2lonlat."""
         from pyresample import utils
         area_id = 'meteosat_0deg'
         area_name = 'Meteosat 0 degree Service'
@@ -874,7 +905,7 @@ class Test(unittest.TestCase):
                                               7500.])))
 
     def test_get_xy_from_lonlat(self):
-        """Test the function get_xy_from_lonlat"""
+        """Test the function get_xy_from_lonlat."""
         from pyresample import utils
         area_id = 'test'
         area_name = 'Test area with 2x2 pixels'
@@ -1191,9 +1222,92 @@ class Test(unittest.TestCase):
                                                               area_extent[3]))
         self.assertEqual(reduced_area.shape, (928, 928))
 
+    def test_get_lonlats_options(self):
+        """Test that lotlat options are respected."""
+        area_def = geometry.AreaDefinition('areaD', 'Europe (3km, HRV, VTC)', 'areaD',
+                                           {'a': '6378144.0',
+                                            'b': '6356759.0',
+                                            'lat_0': '50.00',
+                                            'lat_ts': '50.00',
+                                            'lon_0': '8.00',
+                                            'proj': 'stere'},
+                                           800,
+                                           800,
+                                           [-1370912.72,
+                                               -909968.64000000001,
+                                               1029087.28,
+                                               1490031.3600000001])
+        (lon, _) = area_def.get_lonlats(dtype="f4")
+        self.assertEqual(lon.dtype, np.dtype("f4"))
+
+        (lon, _) = area_def.get_lonlats(dtype="f8")
+        self.assertEqual(lon.dtype, np.dtype("f8"))
+
+        from dask.array.core import Array as dask_array
+        (lon, _) = area_def.get_lonlats(dtype="f4", chunks=4)
+        self.assertEqual(lon.dtype, np.dtype("f4"))
+        self.assertIsInstance(lon, dask_array)
+
+        (lon, _) = area_def.get_lonlats(dtype="f8", chunks=4)
+        self.assertEqual(lon.dtype, np.dtype("f8"))
+        self.assertIsInstance(lon, dask_array)
+
+    def test_area_def_geocentric_resolution(self):
+        """Test the AreaDefinition.geocentric_resolution method."""
+        from pyresample import get_area_def
+        area_extent = (-5570248.477339745, -5561247.267842293, 5567248.074173927, 5570248.477339745)
+        proj_dict = {'a': 6378169.0, 'b': 6356583.8, 'h': 35785831.0,
+                     'lon_0': 0.0, 'proj': 'geos', 'units': 'm'}
+        # metered projection
+        area_def = get_area_def('orig', 'Test area', 'test',
+                                proj_dict,
+                                3712, 3712,
+                                area_extent)
+        geo_res = area_def.geocentric_resolution()
+        np.testing.assert_allclose(10646.562531, geo_res)
+
+        # lon/lat
+        proj_dict = {'a': 6378169.0, 'b': 6356583.8, 'proj': 'latlong'}
+        area_def = get_area_def('orig', 'Test area', 'test',
+                                proj_dict,
+                                3712, 3712,
+                                [-130, 30, -120, 40],
+                                area_extent)
+        geo_res = area_def.geocentric_resolution()
+        np.testing.assert_allclose(248.594116, geo_res)
+
+
+class TestMakeSliceDivisible(unittest.TestCase):
+    """Test the _make_slice_divisible."""
+
+    def test_make_slice_divisible(self):
+        """Test that making area shape divisible by a given factor works."""
+        from pyresample.geometry import _make_slice_divisible
+
+        # Divisible by 2
+        sli = slice(10, 21)
+        factor = 2
+        self.assertNotEqual((sli.stop - sli.start) % factor, 0)
+        res = _make_slice_divisible(sli, 1000, factor=factor)
+        self.assertEqual((res.stop - res.start) % factor, 0)
+
+        # Divisible by 3
+        sli = slice(10, 23)
+        factor = 3
+        self.assertNotEqual((sli.stop - sli.start) % factor, 0)
+        res = _make_slice_divisible(sli, 1000, factor=factor)
+        self.assertEqual((res.stop - res.start) % factor, 0)
+
+        # Divisible by 5
+        sli = slice(10, 23)
+        factor = 5
+        self.assertNotEqual((sli.stop - sli.start) % factor, 0)
+        res = _make_slice_divisible(sli, 1000, factor=factor)
+        self.assertEqual((res.stop - res.start) % factor, 0)
+
 
 def assert_np_dict_allclose(dict1, dict2):
-
+    """Check allclose on dicts."""
     assert set(dict1.keys()) == set(dict2.keys())
     for key, val in dict1.items():
         try:
@@ -1203,10 +1317,10 @@ def assert_np_dict_allclose(dict1, dict2):
 
 
 class TestSwathDefinition(unittest.TestCase):
-
     """Test the SwathDefinition."""
 
     def test_swath(self):
+        """Test swath."""
         lons1 = np.fromfunction(lambda y, x: 3 + (10.0 / 100) * x, (5000, 100))
         lats1 = np.fromfunction(
             lambda y, x: 75 - (50.0 / 5000) * y, (5000, 100))
@@ -1230,6 +1344,7 @@ class TestSwathDefinition(unittest.TestCase):
         self.assertTupleEqual(new_swath_def.lats.shape, (3000, 20))
 
     def test_concat_1d(self):
+        """Test concatenating in 1d."""
         lons1 = np.array([1, 2, 3])
         lats1 = np.array([1, 2, 3])
         lons2 = np.array([4, 5, 6])
@@ -1243,6 +1358,7 @@ class TestSwathDefinition(unittest.TestCase):
                         'Failed to concatenate 1D swaths')
 
     def test_concat_2d(self):
+        """Test concatenating in 2d."""
         lons1 = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
         lats1 = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
         lons2 = np.array([[4, 5, 6], [6, 7, 8]])
@@ -1257,6 +1373,7 @@ class TestSwathDefinition(unittest.TestCase):
                         'Failed to concatenate 2D swaths')
 
     def test_append_1d(self):
+        """Test appending in 1d."""
         lons1 = np.array([1, 2, 3])
         lats1 = np.array([1, 2, 3])
         lons2 = np.array([4, 5, 6])
@@ -1270,6 +1387,7 @@ class TestSwathDefinition(unittest.TestCase):
                         'Failed to append 1D swaths')
 
     def test_append_2d(self):
+        """Test appending in 2d."""
         lons1 = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
         lats1 = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
         lons2 = np.array([[4, 5, 6], [6, 7, 8]])
@@ -1475,8 +1593,6 @@ class TestSwathDefinition(unittest.TestCase):
 
     def test_aggregation(self):
         """Test aggregation on SwathDefinitions."""
-        if (sys.version_info < (3, 0)):
-            self.skipTest("Not implemented in python 2 (xarray).")
         import dask.array as da
         import xarray as xr
         import numpy as np
@@ -1511,10 +1627,43 @@ class TestSwathDefinition(unittest.TestCase):
         np.testing.assert_allclose(res.lons, [[178.5, -179.5]])
         np.testing.assert_allclose(res.lats, [[0, 0]], atol=2e-5)
 
+    def test_swath_def_geocentric_resolution(self):
+        """Test the SwathDefinition.geocentric_resolution method."""
+        import dask.array as da
+        import xarray as xr
+        import numpy as np
+        from pyresample.geometry import SwathDefinition
+        lats = np.array([[0, 0, 0, 0], [1, 1, 1, 1.0]])
+        lons = np.array([[178.5, 179.5, -179.5, -178.5], [178.5, 179.5, -179.5, -178.5]])
+        xlats = xr.DataArray(da.from_array(lats, chunks=2), dims=['y', 'x'])
+        xlons = xr.DataArray(da.from_array(lons, chunks=2), dims=['y', 'x'])
+        sd = SwathDefinition(xlons, xlats)
+        geo_res = sd.geocentric_resolution()
+        # google says 1 degrees of longitude is about ~111.321km
+        # so this seems good
+        np.testing.assert_allclose(111301.237078, geo_res)
 
+        # with a resolution attribute that is None
+        xlons.attrs['resolution'] = None
+        xlats.attrs['resolution'] = None
+        sd = SwathDefinition(xlons, xlats)
+        geo_res = sd.geocentric_resolution()
+        np.testing.assert_allclose(111301.237078, geo_res)
+
+        # with a resolution attribute that is a number
+        xlons.attrs['resolution'] = 111301.237078 / 2
+        xlats.attrs['resolution'] = 111301.237078 / 2
+        sd = SwathDefinition(xlons, xlats)
+        geo_res = sd.geocentric_resolution()
+        np.testing.assert_allclose(111301.237078, geo_res)
+
+        # 1D
+        xlats = xr.DataArray(da.from_array(lats.ravel(), chunks=2), dims=['y'])
+        xlons = xr.DataArray(da.from_array(lons.ravel(), chunks=2), dims=['y'])
+        sd = SwathDefinition(xlons, xlats)
+        self.assertRaises(RuntimeError, sd.geocentric_resolution)
 
 class TestStackedAreaDefinition(unittest.TestCase):
-
     """Test the StackedAreaDefition."""
 
     def test_append(self):
@@ -1755,7 +1904,7 @@ class TestStackedAreaDefinition(unittest.TestCase):
                                                        resolution))
         # Tests non-poles using degrees and mercator.
         area_def = cad(area_id, '+a=6371228.0 +units=m +lon_0=0 +proj=merc +lat_0=0',
-                        center=(0, 0), radius=45, resolution=(1, 0.9999291722135637), units='degrees')
+                       center=(0, 0), radius=45, resolution=(1, 0.9999291722135637), units='degrees')
         self.assertTrue(isinstance(area_def, AreaDefinition))
         self.assertTrue(np.allclose(area_def.area_extent, (-5003950.7698, -5615432.0761, 5003950.7698, 5615432.0761)))
         self.assertEqual(area_def.shape, (101, 90))
@@ -1784,7 +1933,6 @@ class TestStackedAreaDefinition(unittest.TestCase):
 
 
 class TestDynamicAreaDefinition(unittest.TestCase):
-
     """Test the DynamicAreaDefinition class."""
 
     def test_freeze(self):
@@ -1835,8 +1983,9 @@ class TestDynamicAreaDefinition(unittest.TestCase):
         sdef = geometry.SwathDefinition(xr.DataArray(lons), xr.DataArray(lats))
         result = area.freeze(sdef, resolution=1000)
         np.testing.assert_allclose(result.area_extent,
-                                   [-336277.698941, 5513145.392745,
-                                    192456.651909, 7749649.63914])
+                                   [-335439.956533, 5502125.451125,
+                                    191991.313351, 7737532.343683])
+
         self.assertEqual(result.width, 4)
         self.assertEqual(result.height, 18)
         # Test for properties and shape usage in freeze.
@@ -1870,12 +2019,10 @@ class TestDynamicAreaDefinition(unittest.TestCase):
 
 
 class TestCrop(unittest.TestCase):
-
     """Test the area helpers."""
 
     def test_get_geostationary_bbox(self):
         """Get the geostationary bbox."""
-
         geos_area = MagicMock()
         lon_0 = 0
         geos_area.proj_dict = {'a': 6378169.00,
@@ -1982,21 +2129,3 @@ class TestCrop(unittest.TestCase):
         np.testing.assert_allclose(res.area_extent, area.area_extent)
         self.assertEqual(res.shape[0], area.shape[0] / 2)
         self.assertEqual(res.shape[1], area.shape[1] / 4)
-
-
-def suite():
-    """The test suite.
-    """
-    loader = unittest.TestLoader()
-    mysuite = unittest.TestSuite()
-    mysuite.addTest(loader.loadTestsFromTestCase(Test))
-    mysuite.addTest(loader.loadTestsFromTestCase(TestStackedAreaDefinition))
-    mysuite.addTest(loader.loadTestsFromTestCase(TestDynamicAreaDefinition))
-    mysuite.addTest(loader.loadTestsFromTestCase(TestSwathDefinition))
-    mysuite.addTest(loader.loadTestsFromTestCase(TestCrop))
-
-    return mysuite
-
-
-if __name__ == '__main__':
-    unittest.main()
