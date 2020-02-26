@@ -1873,20 +1873,34 @@ class AreaDefinition(BaseDefinition):
         # Intersection only required for two different projections
         proj_def_to_cover = area_to_cover.crs if hasattr(area_to_cover, 'crs') else area_to_cover.proj_str
         proj_def = self.crs if hasattr(self, 'crs') else self.proj_str
+        """
+        #
+        # UH HAU:
+        # problematic, when proj_def, but upper left and lower right corner
+        # are switched, as it is the case with MSG SEVIRI 
+        # 
         if proj_def_to_cover == proj_def:
             logger.debug('Projections for data and slice areas are'
                          ' identical: %s',
                          proj_def_to_cover)
             # Get xy coordinates
             llx, lly, urx, ury = area_to_cover.area_extent
+            print ("llx, lly, urx, ury", llx, lly, urx, ury)
+            
             x, y = self.get_xy_from_proj_coords([llx, urx], [lly, ury])
+            print ("type(x)", type(x))
+            print ("x[0]", x[0])
+            print ("x[1]", x[1])
+            print ("y[0]", y[0])
+            print ("y[1]", y[1])
 
             xstart = 0 if x[0] is np.ma.masked else x[0]
             ystart = 0 if y[1] is np.ma.masked else y[1]
             xstop = self.width if x[1] is np.ma.masked else x[1] + 1
             ystop = self.height if y[0] is np.ma.masked else y[0] + 1
-
+            
             return slice(xstart, xstop), slice(ystart, ystop)
+        """
 
         if self.proj_dict.get('proj') != 'geos':
             raise NotImplementedError("Source projection must be 'geos' if "
